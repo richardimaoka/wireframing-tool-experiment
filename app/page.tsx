@@ -1,14 +1,44 @@
 "use client";
 
+import type { Rows } from "@/model/layout";
 import { useEffect, useState } from "react";
 
+const initialModel: Rows = {
+  type: "rows",
+  children: [{ type: "rectangle" }],
+};
+
+function RectangleView() {
+  return <div style={{ backgroundColor: "#e0e0e0" }}></div>;
+}
+
+function RowsView({ model }: { model: Rows }) {
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "grid",
+        rowGap: "8px",
+        gridTemplateRows: `repeat(${model.children.length}, 1fr)`,
+      }}
+    >
+      {model.children.map((_, i) => (
+        <RectangleView key={i} />
+      ))}
+    </div>
+  );
+}
+
 export default function Page() {
-  const [split, setSplit] = useState(false);
+  const [model, setModel] = useState<Rows>(initialModel);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "h") {
-        setSplit((prev) => !prev);
+        setModel(() => ({
+          type: "rows",
+          children: [{ type: "rectangle" }, { type: "rectangle" }],
+        }));
       }
     }
 
@@ -16,21 +46,5 @@ export default function Page() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  if (!split) {
-    return <div style={{ height: "100vh", backgroundColor: "#e0e0e0" }}></div>;
-  }
-
-  return (
-    <div
-      style={{
-        height: "100vh",
-        display: "grid",
-        gridTemplateRows: "1fr 1fr",
-        rowGap: "8px",
-      }}
-    >
-      <div style={{ backgroundColor: "#e0e0e0" }}></div>
-      <div style={{ backgroundColor: "#e0e0e0" }}></div>
-    </div>
-  );
+  return <RowsView model={model} />;
 }
