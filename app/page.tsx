@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 const initialModel: Rows = {
   type: "rows",
   children: [{ type: "rectangle" }],
+  gridTemplateRows: ["1fr"],
 };
 
 function RectangleView() {
@@ -19,7 +20,7 @@ function RowsView({ model }: { model: Rows }) {
         height: "100vh",
         display: "grid",
         rowGap: "8px",
-        gridTemplateRows: `repeat(${model.children.length}, 1fr)`,
+        gridTemplateRows: model.gridTemplateRows.join(" "),
       }}
     >
       {model.children.map((_, i) => (
@@ -37,6 +38,7 @@ export default function Page() {
       if (e.key === "h") {
         setModel(() => ({
           type: "rows",
+          gridTemplateRows: ["1fr", "1fr"],
           children: [{ type: "rectangle" }, { type: "rectangle" }],
         }));
       }
