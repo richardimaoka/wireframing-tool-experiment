@@ -10,6 +10,12 @@ export type Rows = {
   gridTemplateRows: string[];
 };
 
+export type Columns = {
+  type: "columns";
+  children: Model[];
+  gridTemplateRows: string[];
+};
+
 export type ViewPort = {
   type: "viewport";
   height: "100vh" | "100svh" | "100lvh" | "100dvh";
@@ -26,4 +32,4 @@ export function initialViewPorrt(): ViewPort {
   };
 }
 
-type Model = Rows | Rectangle;
+type Model = Rows | Columns | Rectangle;
