@@ -1,6 +1,14 @@
 import type { Columns, Node, Path, Rectangle, Rows } from "./layout";
 import { pathToString } from "./path";
 
+export type SplitOrientation = "rows" | "columns";
+
+export type SplitAction = {
+  type: "split";
+  targetPath: Path;
+  orientation: "rows" | "columns";
+};
+
 function splitRectangleToRows(rectangle: Rectangle): Rows {
   return {
     type: "rows",
@@ -37,10 +45,3 @@ export function splitRectangle(
       return splitRectangleToColumns(target);
   }
 }
-export type SplitOrientation = "rows" | "columns";
-
-export type SplitAction = {
-  type: "split";
-  targetPath: Path;
-  orientation: "rows" | "columns";
-};

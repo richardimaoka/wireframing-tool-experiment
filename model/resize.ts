@@ -1,18 +1,50 @@
 import type { Rectangle } from "./layout";
 
-function setRectangleHeight(rectangle: Rectangle, height: number): Rectangle {
+type SetRectangleHeightAction = {
+  type: "setRectangleHeight";
+  targetPath: string[];
+  height: number;
+};
+
+type SetRectangleWidthAction = {
+  type: "setRectangleWidth";
+  targetPath: string[];
+  width: number;
+};
+
+type SetRectangleWidthHeightAction = {
+  type: "setRectangleWidthHeight";
+  targetPath: string[];
+  width: number;
+  height: number;
+};
+
+export type ResizeAction =
+  | SetRectangleHeightAction
+  | SetRectangleWidthAction
+  | SetRectangleWidthHeightAction;
+
+export function setRectangleHeight(
+  rectangle: Rectangle,
+  height: number,
+): Rectangle {
   return {
     ...rectangle,
     height: `${height}px`,
   };
 }
-function setRectangleWidth(rectangle: Rectangle, width: number): Rectangle {
+
+export function setRectangleWidth(
+  rectangle: Rectangle,
+  width: number,
+): Rectangle {
   return {
     ...rectangle,
     width: `${width}px`,
   };
 }
-function setRectangleWidthHeight(
+
+export function setRectangleWidthHeight(
   rectangle: Rectangle,
   width: number,
   height: number,
