@@ -1,88 +1,11 @@
-import {
-  type Columns,
-  type Node,
-  type Path,
-  type Rectangle,
-  type Rows,
-  type ViewPort,
-} from "./layout";
+import { type Node, type Path, type ViewPort } from "./layout";
 import {
   getParentPath,
   isEquvalentPath,
   isPartialMatchPath,
   pathToString,
 } from "./path";
-
-export type SplitOrientation = "rows" | "columns";
-
-export type Action = {
-  type: "split";
-  targetPath: Path;
-  orientation: SplitOrientation;
-};
-
-function setRectangleHeight(rectangle: Rectangle, height: number): Rectangle {
-  return {
-    ...rectangle,
-    height: `${height}px`,
-  };
-}
-
-function setRectangleWidth(rectangle: Rectangle, width: number): Rectangle {
-  return {
-    ...rectangle,
-    width: `${width}px`,
-  };
-}
-
-function setRectangleWidthHeight(
-  rectangle: Rectangle,
-  width: number,
-  height: number,
-): Rectangle {
-  return {
-    ...rectangle,
-    width: `${width}px`,
-    height: `${height}px`,
-  };
-}
-
-function splitRectangleToRows(rectangle: Rectangle): Rows {
-  return {
-    type: "rows",
-    id: "1",
-    children: [rectangle, { ...rectangle, id: "2" }],
-    gridTemplateRows: ["1fr", "1fr"],
-  };
-}
-
-function splitRectangleToColumns(rectangle: Rectangle): Columns {
-  return {
-    type: "columns",
-    id: "1",
-    children: [rectangle, { ...rectangle, id: "2" }],
-    gridTemplateColumns: ["1fr", "1fr"],
-  };
-}
-
-function splitRectangle(
-  target: Node,
-  targetPath: Path,
-  orientation: SplitOrientation,
-): Node {
-  if (target.type !== "rectangle") {
-    throw new Error(
-      `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${c.type} instead.`,
-    );
-  }
-
-  switch (orientation) {
-    case "rows":
-      return splitRectangleToRows(target);
-    case "columns":
-      return splitRectangleToColumns(target);
-  }
-}
+import { SplitAction, SplitOrientation, splitRectangle } from "./split";
 
 function performAction(
   node: Node,
@@ -120,7 +43,7 @@ function performAction(
   return { ...node, children };
 }
 
-function splitNodeFromViewPort(
+function performActionFromViewPort(
   viewPort: ViewPort,
   targetPath: Path,
   orientation: SplitOrientation,
@@ -131,6 +54,7 @@ function splitNodeFromViewPort(
     );
   }
 
+  // targetPath has depth = 1, so we need to check if it matches the root node
   if (targetPath.length === 1) {
     if (viewPort.rootNode.id !== targetPath[0]) {
       throw new Error(
@@ -147,8 +71,7 @@ function splitNodeFromViewPort(
     }
   }
 
-  // targetPath has depth > 1, so we need to search for the parent node of the target node
-
+  // targetPath has depth > 1, so we need to search for the target node
   return performAction(
     viewPort.rootNode,
     [viewPort.rootNode.id],
@@ -157,12 +80,15 @@ function splitNodeFromViewPort(
   );
 }
 
-export function layoutReducer(viewport: ViewPort, action: Action): ViewPort {
+export function layoutReducer(
+  viewport: ViewPort,
+  action: SplitAction,
+): ViewPort {
   switch (action.type) {
     case "split":
       return {
         ...viewport,
-        rootNode: splitNodeFromViewPort(
+        rootNode: performActionFromViewPort(
           viewport,
           action.targetPath,
           action.orientation,
