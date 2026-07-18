@@ -22,7 +22,6 @@ function RectangleView({ path }: { path: Path }) {
 
   return (
     <div
-      onClick={() => select(path)}
       style={{
         height: "100%",
         width: "100%",
@@ -61,12 +60,10 @@ function NodeView({ node, path }: { node: Node; path: Path }) {
 export default function Page() {
   const [viewport, dispatch] = useReducer(layoutReducer, initialViewPort());
   const [selectedPath, setSelectedPath] = useState<Path>(["1"]);
+  console.log(`Page: selectedPath='${selectedPath.join("/")}'`);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      console.log(
-        `Key pressed: ${e.key} (selectedPath: ${selectedPath.join("/")})`,
-      );
       if (e.key === "h" || e.key === "v") {
         dispatch({
           type: "split",
