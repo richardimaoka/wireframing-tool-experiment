@@ -1,51 +1,50 @@
-import type { Columns, Node, Path, Rectangle, Rows, ViewPort } from "./layout";
+import {
+  type Columns,
+  type Node,
+  type Path,
+  type Rectangle,
+  type Rows,
+  type ViewPort,
+} from "./layout";
+import {
+  getParentPath,
+  isEquvalentPath,
+  isPartialMatchPath,
+  pathToString,
+} from "./path";
 
 export type SplitOrientation = "rows" | "columns";
 
 export type Action = {
   type: "split";
-  path: Path;
+  targetPath: Path;
   orientation: SplitOrientation;
 };
 
-export function isEquvalentPath(path1: Path, path2: Path): boolean {
-  return (
-    path1.length === path2.length &&
-    path1.every((value, i) => value === path2[i])
-  );
+function setRectangleHeight(rectangle: Rectangle, height: number): Rectangle {
+  return {
+    ...rectangle,
+    height: `${height}px`,
+  };
 }
 
-function isPartialMatchPath(path1: Path, path2: Path): boolean {
-  // 1. Identify which Path is shorter and which is longer
-  const [shorter, longer] =
-    path1.length <= path2.length ? [path1, path2] : [path1, path2];
-
-  // 2. Loop through the shorter array index-by-index
-  for (let i = 0; i < shorter.length; i++) {
-    const shortStr = shorter[i];
-    const longStr = longer[i];
-
-    // Check if they do NOT match each other
-    if (shortStr !== longStr) {
-      return false; // Break out and return false immediately on the first mismatch
-    }
-  }
-
-  // If the loop finishes without hitting a mismatch, they all passed
-  return true;
+function setRectangleWidth(rectangle: Rectangle, width: number): Rectangle {
+  return {
+    ...rectangle,
+    width: `${width}px`,
+  };
 }
 
-function getParentPath(path: Path): Path {
-  if (path.length < 1) {
-    throw new Error(`path '${pathToString(path)}' has no parent.`);
-  }
-
-  // omit the last element
-  return path.slice(0, -1);
-}
-
-function pathToString(path: Path): string {
-  return path.join("/");
+function setRectangleWidthHeight(
+  rectangle: Rectangle,
+  width: number,
+  height: number,
+): Rectangle {
+  return {
+    ...rectangle,
+    width: `${width}px`,
+    height: `${height}px`,
+  };
 }
 
 function splitRectangleToRows(rectangle: Rectangle): Rows {
@@ -67,27 +66,30 @@ function splitRectangleToColumns(rectangle: Rectangle): Columns {
 }
 
 function splitRectangle(
-  rectangle: Rectangle,
+  target: Node,
+  targetPath: Path,
   orientation: SplitOrientation,
 ): Node {
+  if (target.type !== "rectangle") {
+    throw new Error(
+      `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${c.type} instead.`,
+    );
+  }
+
   switch (orientation) {
     case "rows":
-      return splitRectangleToRows(rectangle);
+      return splitRectangleToRows(target);
     case "columns":
-      return splitRectangleToColumns(rectangle);
+      return splitRectangleToColumns(target);
   }
 }
 
-function splitNode(
+function performAction(
   node: Node,
   nodePath: Path,
   targetPath: Path,
   orientation: SplitOrientation,
 ): Node {
-  console.log(
-    `splitNode: nodePath='${pathToString(nodePath)}', targetPath='${pathToString(targetPath)}'`,
-  );
-
   if (isEquvalentPath(nodePath, targetPath)) {
     const parentPath = getParentPath(targetPath);
     throw new Error(
@@ -105,15 +107,11 @@ function splitNode(
     const childPath = [...nodePath, c.id];
 
     if (isEquvalentPath(childPath, targetPath)) {
-      if (c.type !== "rectangle") {
-        throw new Error(
-          `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${c.type} instead.`,
-        );
-      }
-
-      return splitRectangle(c, orientation);
+      // Exact match found, so we can split this child node
+      // Also, this node (i.e.) the parent of the target node should be altered
+      return splitRectangle(c, targetPath, orientation);
     } else if (isPartialMatchPath(childPath, targetPath)) {
-      return splitNode(c, childPath, targetPath, orientation);
+      return performAction(c, childPath, targetPath, orientation);
     } else {
       return c;
     }
@@ -127,9 +125,6 @@ function splitNodeFromViewPort(
   targetPath: Path,
   orientation: SplitOrientation,
 ): Node {
-  console.log(
-    `splitNodeFromViewPort: targetPath='${pathToString(targetPath)}', orientation='${orientation}'`,
-  );
   if (targetPath.length < 1) {
     throw new Error(
       `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' is invalid - it must have at least one element.`,
@@ -148,13 +143,13 @@ function splitNodeFromViewPort(
           `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' matches the root node, but it is not a rectangle, ${viewPort.rootNode.type} instead.`,
         );
       }
-      return splitRectangle(viewPort.rootNode, orientation);
+      return splitRectangle(viewPort.rootNode, targetPath, orientation);
     }
   }
 
   // targetPath has depth > 1, so we need to search for the parent node of the target node
 
-  return splitNode(
+  return performAction(
     viewPort.rootNode,
     [viewPort.rootNode.id],
     targetPath,
@@ -169,7 +164,7 @@ export function layoutReducer(viewport: ViewPort, action: Action): ViewPort {
         ...viewport,
         rootNode: splitNodeFromViewPort(
           viewport,
-          action.path,
+          action.targetPath,
           action.orientation,
         ),
       };

@@ -2,7 +2,8 @@
 
 import type { Node, Path } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
-import { isEquvalentPath, layoutReducer } from "@/model/reducer";
+import { isEquvalentPath } from "@/model/path";
+import { layoutReducer } from "@/model/reducer";
 import {
   createContext,
   useContext,
@@ -34,6 +35,7 @@ function RectangleView({ path }: { path: Path }) {
 }
 
 function NodeView({ node, path }: { node: Node; path: Path }) {
+  console.log(`NodeView: path='${path.join("/")}' node.type='${node.type}'`);
   if (node.type === "rectangle") {
     return <RectangleView path={path} />;
   }
@@ -60,14 +62,13 @@ function NodeView({ node, path }: { node: Node; path: Path }) {
 export default function Page() {
   const [viewport, dispatch] = useReducer(layoutReducer, initialViewPort());
   const [selectedPath, setSelectedPath] = useState<Path>(["1"]);
-  console.log(`Page: selectedPath='${selectedPath.join("/")}'`);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "h" || e.key === "v") {
         dispatch({
           type: "split",
-          path: selectedPath,
+          targetPath: selectedPath,
           orientation: e.key === "h" ? "rows" : "columns",
         });
         setSelectedPath((path) => [...path, "1"]); // Select the first child of the newly split node
