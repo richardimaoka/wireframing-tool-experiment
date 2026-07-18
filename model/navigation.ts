@@ -30,44 +30,66 @@ function getNodeByPath(root: Node, path: Path): Node {
   return node;
 }
 
-// Sibling-only navigation: moves to the adjacent child within the immediate
-// parent container, only along the axis that container splits on (rows for
-// up/down, columns for left/right). Returns null - a no-op - if the parent's
-// orientation doesn't match the direction, or there's no sibling that way.
-export function getSiblingPath(
+// Descends from `path` via each node's first child until it reaches a
+// rectangle leaf, e.g. landing in a freshly-entered sibling subtree.
+function getFirstLeafPath(root: Node, path: Path): Path {
+  let node = getNodeByPath(root, path);
+  let result = path;
+
+  while (node.type !== "rectangle") {
+    const firstChild = node.children[0];
+    result = [...result, firstChild.id];
+    node = firstChild;
+  }
+
+  return result;
+}
+
+// Tree-bubbling (i3-style) navigation: tries to move to the adjacent child
+// within the immediate parent container, along the axis that container
+// splits on (rows for up/down, columns for left/right). If the parent's
+// orientation doesn't match, or there's no sibling that way, bubbles up to
+// the grandparent and retries there. Once a sibling is found, descends into
+// its first leaf rectangle. Returns null - a no-op - if bubbling reaches the
+// root without finding a matching sibling.
+export function getDirectionalTarget(
   root: Node,
   path: Path,
   direction: Direction,
 ): Path | null {
-  if (path.length < 2) {
-    return null;
+  let current = path;
+
+  while (current.length >= 2) {
+    const parentPath = getParentPath(current);
+    const parent = getNodeByPath(root, parentPath);
+
+    if (parent.type === "rectangle") {
+      throw new Error(
+        `getDirectionalTarget: parent '${pathToString(parentPath)}' of '${pathToString(current)}' is a rectangle leaf, not a container.`,
+      );
+    }
+
+    const axisMatches =
+      parent.type === "rows"
+        ? direction === "up" || direction === "down"
+        : direction === "left" || direction === "right";
+
+    if (axisMatches) {
+      const currentId = current[current.length - 1];
+      const currentIndex = parent.children.findIndex(
+        (c) => c.id === currentId,
+      );
+      const delta = direction === "up" || direction === "left" ? -1 : 1;
+      const newIndex = currentIndex + delta;
+
+      if (newIndex >= 0 && newIndex < parent.children.length) {
+        const landingPath = [...parentPath, parent.children[newIndex].id];
+        return getFirstLeafPath(root, landingPath);
+      }
+    }
+
+    current = parentPath;
   }
 
-  const parentPath = getParentPath(path);
-  const parent = getNodeByPath(root, parentPath);
-
-  if (parent.type === "rectangle") {
-    throw new Error(
-      `getSiblingPath: parent '${pathToString(parentPath)}' of '${pathToString(path)}' is a rectangle leaf, not a container.`,
-    );
-  }
-
-  const axisMatches =
-    parent.type === "rows"
-      ? direction === "up" || direction === "down"
-      : direction === "left" || direction === "right";
-  if (!axisMatches) {
-    return null;
-  }
-
-  const currentId = path[path.length - 1];
-  const currentIndex = parent.children.findIndex((c) => c.id === currentId);
-  const delta = direction === "up" || direction === "left" ? -1 : 1;
-  const newIndex = currentIndex + delta;
-
-  if (newIndex < 0 || newIndex >= parent.children.length) {
-    return null;
-  }
-
-  return [...parentPath, parent.children[newIndex].id];
+  return null;
 }

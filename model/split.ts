@@ -13,8 +13,11 @@ export type SplitAction = {
 function splitRectangleToRows(rectangle: Rectangle): Rows {
   return {
     type: "rows",
-    id: "1",
-    children: [rectangle, { ...rectangle, id: "2" }],
+    id: rectangle.id,
+    children: [
+      { ...rectangle, id: "1" },
+      { ...rectangle, id: "2" },
+    ],
     gridTemplateRows: ["1fr", "1fr"],
   };
 }
@@ -22,8 +25,11 @@ function splitRectangleToRows(rectangle: Rectangle): Rows {
 function splitRectangleToColumns(rectangle: Rectangle): Columns {
   return {
     type: "columns",
-    id: "1",
-    children: [rectangle, { ...rectangle, id: "2" }],
+    id: rectangle.id,
+    children: [
+      { ...rectangle, id: "1" },
+      { ...rectangle, id: "2" },
+    ],
     gridTemplateColumns: ["1fr", "1fr"],
   };
 }

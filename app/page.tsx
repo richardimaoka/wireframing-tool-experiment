@@ -2,7 +2,7 @@
 
 import type { Node } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
-import { getSiblingPath, type Direction } from "@/model/navigation";
+import { getDirectionalTarget, type Direction } from "@/model/navigation";
 import type { Path } from "@/model/path";
 import { isEquvalentPath } from "@/model/path";
 import { layoutReducer } from "@/model/reducer";
@@ -44,9 +44,6 @@ function RectangleView({ path }: { path: Path }) {
   const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log(
-      `RectangleView: path='${path.join("/")}' isSelected=${isSelected}`,
-    );
     if (!isSelected || !divRef.current) return;
 
     // CSS grid sizes (fr units) aren't known until the browser lays them out,
@@ -77,7 +74,6 @@ function RectangleView({ path }: { path: Path }) {
 }
 
 function NodeView({ node, path }: { node: Node; path: Path }) {
-  console.log(`NodeView: path='${path.join("/")}' node.type='${node.type}'`);
   if (node.type === "rectangle") {
     return <RectangleView path={path} />;
   }
@@ -91,6 +87,10 @@ function NodeView({ node, path }: { node: Node; path: Path }) {
           columnGap: "8px",
         };
 
+  console.log(
+    `NodeView: path='${path.join("/")}' node.type='${node.type}' children=${node.children.map((c) => c.id).join(",")}
+    )}`,
+  );
   return (
     <div
       style={{ height: "100%", width: "100%", display: "grid", ...gridStyle }}
@@ -143,13 +143,13 @@ export default function Page() {
 
       const direction = arrowKeyDirections[e.key];
       if (direction) {
-        const siblingPath = getSiblingPath(
+        const targetPath = getDirectionalTarget(
           viewport.rootNode,
           selectedPath,
           direction,
         );
-        if (siblingPath) {
-          setSelectedPath(siblingPath);
+        if (targetPath) {
+          setSelectedPath(targetPath);
         }
       }
     }
