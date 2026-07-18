@@ -1,22 +1,24 @@
 "use client";
 
-import { createContext, useContext, useEffect, useReducer, useState } from "react";
 import type { Node, Path } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
-import { layoutReducer } from "@/model/reducer";
+import { isEquvalentPath, layoutReducer } from "@/model/reducer";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
 
 const SelectionContext = createContext<{
   selectedPath: Path;
   select: (path: Path) => void;
 } | null>(null);
 
-function pathsEqual(a: Path, b: Path) {
-  return a.length === b.length && a.every((value, i) => value === b[i]);
-}
-
 function RectangleView({ path }: { path: Path }) {
   const { selectedPath, select } = useContext(SelectionContext)!;
-  const isSelected = pathsEqual(selectedPath, path);
+  const isSelected = isEquvalentPath(selectedPath, path);
 
   return (
     <div
@@ -40,12 +42,17 @@ function NodeView({ node, path }: { node: Node; path: Path }) {
   const gridStyle =
     node.type === "rows"
       ? { gridTemplateRows: node.gridTemplateRows.join(" "), rowGap: "8px" }
-      : { gridTemplateColumns: node.gridTemplateColumns.join(" "), columnGap: "8px" };
+      : {
+          gridTemplateColumns: node.gridTemplateColumns.join(" "),
+          columnGap: "8px",
+        };
 
   return (
-    <div style={{ height: "100%", width: "100%", display: "grid", ...gridStyle }}>
-      {node.children.map((child, i) => (
-        <NodeView key={i} node={child} path={[...path, i]} />
+    <div
+      style={{ height: "100%", width: "100%", display: "grid", ...gridStyle }}
+    >
+      {node.children.map((child) => (
+        <NodeView key={child.id} node={child} path={[...path, child.id]} />
       ))}
     </div>
   );
@@ -53,17 +60,20 @@ function NodeView({ node, path }: { node: Node; path: Path }) {
 
 export default function Page() {
   const [viewport, dispatch] = useReducer(layoutReducer, initialViewPort());
-  const [selectedPath, setSelectedPath] = useState<Path>([]);
+  const [selectedPath, setSelectedPath] = useState<Path>(["1"]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      console.log(
+        `Key pressed: ${e.key} (selectedPath: ${selectedPath.join("/")})`,
+      );
       if (e.key === "h" || e.key === "v") {
         dispatch({
           type: "split",
           path: selectedPath,
           orientation: e.key === "h" ? "rows" : "columns",
         });
-        setSelectedPath((path) => [...path, 0]);
+        setSelectedPath((path) => [...path, "1"]); // Select the first child of the newly split node
       }
     }
 
@@ -72,9 +82,11 @@ export default function Page() {
   }, [selectedPath]);
 
   return (
-    <SelectionContext.Provider value={{ selectedPath, select: setSelectedPath }}>
+    <SelectionContext.Provider
+      value={{ selectedPath, select: setSelectedPath }}
+    >
       <div style={{ height: viewport.height }}>
-        <NodeView node={viewport.child} path={[]} />
+        <NodeView node={viewport.rootNode} path={[]} />
       </div>
     </SelectionContext.Provider>
   );
