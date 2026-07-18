@@ -85,7 +85,7 @@ export default function Page() {
       value={{ selectedPath, select: setSelectedPath }}
     >
       <div style={{ height: viewport.height }}>
-        <NodeView node={viewport.rootNode} path={[]} />
+        <NodeView node={viewport.rootNode} path={[viewport.rootNode.id]} />
       </div>
     </SelectionContext.Provider>
   );
