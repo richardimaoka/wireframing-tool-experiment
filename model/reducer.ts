@@ -5,13 +5,13 @@ import {
   isPartialMatchPath,
   pathToString,
 } from "./path";
-import { SplitAction, SplitOrientation, splitRectangle } from "./split";
+import { SplitAction, splitRectangle } from "./split";
 
 function performAction(
   node: Node,
   nodePath: Path,
   targetPath: Path,
-  orientation: SplitOrientation,
+  action: SplitAction,
 ): Node {
   if (isEquvalentPath(nodePath, targetPath)) {
     const parentPath = getParentPath(targetPath);
@@ -30,23 +30,35 @@ function performAction(
     const childPath = [...nodePath, c.id];
 
     if (isEquvalentPath(childPath, targetPath)) {
-      // Exact match found, so we can split this child node
+      // Exact match found, so we can peroform the action on this child node
       // Also, this node (i.e.) the parent of the target node should be altered
-      return splitRectangle(c, targetPath, orientation);
+      switch (action.type) {
+        case "split":
+          return splitRectangle(c, targetPath, action.orientation);
+        default:
+          throw new Error(
+            `performAction: unexpected action type '${action.type}' encountered.`,
+          );
+      }
     } else if (isPartialMatchPath(childPath, targetPath)) {
-      return performAction(c, childPath, targetPath, orientation);
+      // Partial match found, so we need to recurse into this child node
+      return performAction(c, childPath, targetPath, action);
     } else {
+      // No match found, so we can return this child node as-is
       return c;
     }
   });
 
+  // Return a new node with the updated children array
+  // children needs to be recursively updated,
+  // so we need to return a new node with the updated children array
   return { ...node, children };
 }
 
 function performActionFromViewPort(
   viewPort: ViewPort,
   targetPath: Path,
-  orientation: SplitOrientation,
+  action: SplitAction,
 ): Node {
   if (targetPath.length < 1) {
     throw new Error(
@@ -62,12 +74,18 @@ function performActionFromViewPort(
       );
     } else {
       // targetPath matches the root node, so we can split it directly
-      if (viewPort.rootNode.type !== "rectangle") {
-        throw new Error(
-          `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' matches the root node, but it is not a rectangle, ${viewPort.rootNode.type} instead.`,
-        );
+      switch (action.type) {
+        case "split":
+          return splitRectangle(
+            viewPort.rootNode,
+            targetPath,
+            action.orientation,
+          );
+        default:
+          throw new Error(
+            `performAction: unexpected action type '${action.type}' encountered.`,
+          );
       }
-      return splitRectangle(viewPort.rootNode, targetPath, orientation);
     }
   }
 
@@ -76,7 +94,7 @@ function performActionFromViewPort(
     viewPort.rootNode,
     [viewPort.rootNode.id],
     targetPath,
-    orientation,
+    action,
   );
 }
 
@@ -91,7 +109,7 @@ export function layoutReducer(
         rootNode: performActionFromViewPort(
           viewport,
           action.targetPath,
-          action.orientation,
+          action,
         ),
       };
   }
