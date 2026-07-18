@@ -2,6 +2,7 @@
 
 import type { Node } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
+import { getSiblingPath, type Direction } from "@/model/navigation";
 import type { Path } from "@/model/path";
 import { isEquvalentPath } from "@/model/path";
 import { layoutReducer } from "@/model/reducer";
@@ -20,6 +21,13 @@ import {
 const MIN_SPLIT_SIZE = 10;
 
 type SelectedSize = { width: number; height: number };
+
+const arrowKeyDirections: Record<string, Direction> = {
+  ArrowUp: "up",
+  ArrowDown: "down",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+};
 
 // reportSelectedSize lets the selected RectangleView push its live rendered
 // size up to Page, which needs it to gate splitting.
@@ -130,12 +138,25 @@ export default function Page() {
         });
 
         setSelectedPath((path) => [...path, "1"]); // Select the first child of the newly split node
+        return;
+      }
+
+      const direction = arrowKeyDirections[e.key];
+      if (direction) {
+        const siblingPath = getSiblingPath(
+          viewport.rootNode,
+          selectedPath,
+          direction,
+        );
+        if (siblingPath) {
+          setSelectedPath(siblingPath);
+        }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPath]);
+  }, [selectedPath, viewport.rootNode]);
 
   return (
     <SelectionContext.Provider
