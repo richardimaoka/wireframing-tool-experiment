@@ -1,5 +1,3 @@
-import type { Path } from "./layout";
-
 export function pathToString(path: Path): string {
   return path.join("/");
 }
@@ -38,4 +36,9 @@ export function isEquvalentPath(path1: Path, path2: Path): boolean {
     path1.length === path2.length &&
     path1.every((value, i) => value === path2[i])
   );
-}
+} // A path is a chain of child indices from the viewport's root child down to
+// a specific node, e.g. [0, 1] means "child 1 of child 0". [] refers to the
+// root child itself. Paths are only valid for the tree shape they were
+// computed against - see project memory on the layout tree architecture.
+
+export type Path = string[];

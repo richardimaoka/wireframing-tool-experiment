@@ -1,9 +1,10 @@
-import { type Node, type Path, type ViewPort } from "./layout";
+import { type Node, type ViewPort } from "./layout";
 import {
   getParentPath,
   isEquvalentPath,
   isPartialMatchPath,
   pathToString,
+  type Path,
 } from "./path";
 import { ResizeAction } from "./resize";
 import { SplitAction, splitRectangle } from "./split";

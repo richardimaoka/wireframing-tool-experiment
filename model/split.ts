@@ -1,4 +1,5 @@
-import type { Columns, Node, Path, Rectangle, Rows } from "./layout";
+import type { Columns, Node, Rectangle, Rows } from "./layout";
+import type { Path } from "./path";
 import { pathToString } from "./path";
 
 export type SplitOrientation = "rows" | "columns";

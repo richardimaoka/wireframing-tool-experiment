@@ -1,5 +1,5 @@
-import { type Node, type Path, type Rectangle } from "./layout";
-import { pathToString } from "./path";
+import { type Node, type Rectangle } from "./layout";
+import { pathToString, type Path } from "./path";
 
 type SetRectangleHeightAction = {
   type: "resize";

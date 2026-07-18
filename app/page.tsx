@@ -1,7 +1,8 @@
 "use client";
 
-import type { Node, Path } from "@/model/layout";
+import type { Node } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
+import type { Path } from "@/model/path";
 import { isEquvalentPath } from "@/model/path";
 import { layoutReducer } from "@/model/reducer";
 import {
