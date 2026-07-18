@@ -5,13 +5,16 @@ import {
   isPartialMatchPath,
   pathToString,
 } from "./path";
+import { ResizeAction } from "./resize";
 import { SplitAction, splitRectangle } from "./split";
+
+type Action = SplitAction | ResizeAction;
 
 function performAction(
   node: Node,
   nodePath: Path,
   targetPath: Path,
-  action: SplitAction,
+  action: Action,
 ): Node {
   if (isEquvalentPath(nodePath, targetPath)) {
     const parentPath = getParentPath(targetPath);
@@ -58,7 +61,7 @@ function performAction(
 function performActionFromViewPort(
   viewPort: ViewPort,
   targetPath: Path,
-  action: SplitAction,
+  action: Action,
 ): Node {
   if (targetPath.length < 1) {
     throw new Error(
@@ -98,19 +101,9 @@ function performActionFromViewPort(
   );
 }
 
-export function layoutReducer(
-  viewport: ViewPort,
-  action: SplitAction,
-): ViewPort {
-  switch (action.type) {
-    case "split":
-      return {
-        ...viewport,
-        rootNode: performActionFromViewPort(
-          viewport,
-          action.targetPath,
-          action,
-        ),
-      };
-  }
+export function layoutReducer(viewport: ViewPort, action: Action): ViewPort {
+  return {
+    ...viewport,
+    rootNode: performActionFromViewPort(viewport, action.targetPath, action),
+  };
 }
