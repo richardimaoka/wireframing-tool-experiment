@@ -50,54 +50,40 @@ function performAction(
     );
   }
 
-  switch (action.type) {
-    case "split": {
-      if (hasMatchedChild(node, nodePath, targetPath)) {
+  if (hasMatchedChild(node, nodePath, targetPath)) {
+    // The target is a direct child, so the parent (this node) must be
+    // replaced rather than just the matched child - resizing also updates
+    // the parent's grid template slot for that child.
+    switch (action.type) {
+      case "split":
         switch (node.type) {
           case "rows":
             return splitRectangleInRows(node, targetPath, action);
           case "columns":
             return splitRectangleInColumns(node, targetPath, action);
         }
-      }
-
-      // No match at this level, so we need to recurse into whichever child
-      // partially matches the target path.
-      const children = node.children.map((c) => {
-        const childPath = [...nodePath, c.id];
-        return isPartialMatchPath(childPath, targetPath)
-          ? performAction(c, childPath, targetPath, action)
-          : c;
-      });
-
-      return { ...node, children };
-    }
-
-    case "resize": {
-      // Resizing a rectangle also updates its slot in the parent's grid
-      // template, so the parent (this node) - not just the matched child -
-      // must be replaced.
-      if (hasMatchedChild(node, nodePath, targetPath)) {
+        break;
+      case "resize":
         switch (node.type) {
           case "rows":
             return resizeRectangleInRows(node, targetPath, action);
           case "columns":
             return resizeRectangleInColumns(node, targetPath, action);
         }
-      }
-
-      // No match at this level, so we need to recurse into whichever child
-      // partially matches the target path.
-      const children = node.children.map((c) => {
-        const childPath = [...nodePath, c.id];
-        return isPartialMatchPath(childPath, targetPath)
-          ? performAction(c, childPath, targetPath, action)
-          : c;
-      });
-
-      return { ...node, children };
+        break;
     }
   }
+
+  // No match at this level, so we need to recurse into whichever child
+  // partially matches the target path.
+  const children = node.children.map((c) => {
+    const childPath = [...nodePath, c.id];
+    return isPartialMatchPath(childPath, targetPath)
+      ? performAction(c, childPath, targetPath, action)
+      : c;
+  });
+
+  return { ...node, children };
 }
 
 function performActionFromViewPort(
