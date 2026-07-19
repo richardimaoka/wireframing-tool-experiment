@@ -1,11 +1,19 @@
 import { Columns, Rows, type ModelNode } from "./layout";
 import { pathToString, type Path } from "./path";
 
-export type CenterAction = {
+export type HorizontalCenterAction = {
   type: "center";
+  axis: "horizontal";
   targetPath: Path;
-  axis: "horizontal" | "vertical";
 };
+
+export type VerticalCenterAction = {
+  type: "center";
+  axis: "vertical";
+  targetPath: Path;
+};
+
+export type CenterAction = HorizontalCenterAction | VerticalCenterAction;
 
 // Placeholder: centering is not implemented yet, so the container is
 // returned unchanged.
