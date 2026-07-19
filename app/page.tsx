@@ -29,14 +29,6 @@ const arrowKeyDirections: Record<string, Direction> = {
   ArrowRight: "right",
 };
 
-// reportSelectedSize lets the selected RectangleView push its live rendered
-// size up to Page, which needs it to gate splitting.
-const SelectionContext = createContext<{
-  selectedPath: Path;
-  select: (path: Path) => void;
-  reportSelectedSize: (size: SelectedSize) => void;
-} | null>(null);
-
 function RectangleView({ path }: { path: Path }) {
   const { selectedPath, select, reportSelectedSize } =
     useContext(SelectionContext)!;
@@ -101,6 +93,14 @@ function NodeView({ node, path }: { node: ModelNode; path: Path }) {
     </div>
   );
 }
+
+// reportSelectedSize lets the selected RectangleView push its live rendered
+// size up to Page, which needs it to gate splitting.
+const SelectionContext = createContext<{
+  selectedPath: Path;
+  select: (path: Path) => void;
+  reportSelectedSize: (size: SelectedSize) => void;
+} | null>(null);
 
 export default function Page() {
   const [viewport, dispatch] = useReducer(layoutReducer, initialViewPort());
