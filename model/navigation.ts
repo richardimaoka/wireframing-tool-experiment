@@ -3,7 +3,7 @@ import { getParentPath, pathToString, type Path } from "./path";
 
 export type Direction = "up" | "down" | "left" | "right";
 
-function getNodeByPath(root: ModelNode, path: Path): ModelNode {
+export function getNodeByPath(root: ModelNode, path: Path): ModelNode {
   if (path.length < 1 || path[0] !== root.id) {
     throw new Error(
       `getNodeByPath: path '${pathToString(path)}' does not start at the root node '${root.id}'.`,

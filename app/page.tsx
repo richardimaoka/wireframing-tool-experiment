@@ -10,6 +10,7 @@ import type {
 import { initialColumns, initialRows } from "@/model/layout";
 import {
   getFirstChildPath,
+  getNodeByPath,
   getParentSelectionPath,
   getRectangle,
   getSiblingPath,
@@ -530,6 +531,23 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
       // or vertically.
       if (e.key === "c") {
         if (!isRectangle(rootNode, selectedPath)) {
+          return;
+        }
+
+        // Centering is only implemented for a rectangle that is its
+        // parent's only child.
+        const parent = getNodeByPath(rootNode, getParentPath(selectedPath));
+        if (parent.type === "rectangle") {
+          // A rectangle can never be the parent of another node - if
+          // selectedPath is a rectangle (checked above), its parent must be
+          // a Rows/Columns container.
+          throw new Error(
+            "Unexpected rectangle parent for a rectangle leaf.",
+          );
+        }
+        // Centering more than one child is not implemented yet (see
+        // centerRectangleInRows/centerRectangleInColumns).
+        if (parent.children.length > 1) {
           return;
         }
 
