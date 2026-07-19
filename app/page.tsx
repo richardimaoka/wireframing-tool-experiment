@@ -66,6 +66,56 @@ function RectangleView({ path }: { path: Path }) {
   );
 }
 
+function RowsView({ node, path }: { node: Rows; path: Path }) {
+  const { selectedPath } = useContext(SelectionContext)!;
+  const isSelected = isEquvalentPath(selectedPath, path);
+
+  return (
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "grid",
+        gridTemplateRows: node.gridTemplateRows.join(" "),
+        // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
+        rowGap: "8px",
+        backgroundColor: isSelected ? "#dbeafe" : undefined,
+        outline: isSelected ? "2px solid #3b82f6" : "1px solid #999",
+        outlineOffset: "-2px",
+      }}
+    >
+      {node.children.map((child) => (
+        <NodeView key={child.id} node={child} path={[...path, child.id]} />
+      ))}
+    </div>
+  );
+}
+
+function ColumnsView({ node, path }: { node: Columns; path: Path }) {
+  const { selectedPath } = useContext(SelectionContext)!;
+  const isSelected = isEquvalentPath(selectedPath, path);
+
+  return (
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "grid",
+        gridTemplateColumns: node.gridTemplateColumns.join(" "),
+        // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
+        columnGap: "8px",
+        backgroundColor: isSelected ? "#dbeafe" : undefined,
+        outline: isSelected ? "2px solid #3b82f6" : "1px solid #999",
+        outlineOffset: "-2px",
+      }}
+    >
+      {node.children.map((child) => (
+        <NodeView key={child.id} node={child} path={[...path, child.id]} />
+      ))}
+    </div>
+  );
+}
+
 function NodeView({
   node,
   path,
@@ -81,44 +131,6 @@ function NodeView({
     case "columns":
       return <ColumnsView node={node} path={path} />;
   }
-}
-
-function RowsView({ node, path }: { node: Rows; path: Path }) {
-  return (
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "grid",
-        gridTemplateRows: node.gridTemplateRows.join(" "),
-        // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
-        rowGap: "8px",
-      }}
-    >
-      {node.children.map((child) => (
-        <NodeView key={child.id} node={child} path={[...path, child.id]} />
-      ))}
-    </div>
-  );
-}
-
-function ColumnsView({ node, path }: { node: Columns; path: Path }) {
-  return (
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "grid",
-        gridTemplateColumns: node.gridTemplateColumns.join(" "),
-        // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
-        columnGap: "8px",
-      }}
-    >
-      {node.children.map((child) => (
-        <NodeView key={child.id} node={child} path={[...path, child.id]} />
-      ))}
-    </div>
-  );
 }
 
 // reportSelectedSize lets the selected RectangleView push its live rendered
