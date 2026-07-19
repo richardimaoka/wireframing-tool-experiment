@@ -2,7 +2,7 @@
 
 import type { Node } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
-import { getDirectionalTarget, type Direction } from "@/model/navigation";
+import { getSiblingPath, type Direction } from "@/model/navigation";
 import type { Path } from "@/model/path";
 import { isEquvalentPath } from "@/model/path";
 import { layoutReducer } from "@/model/reducer";
@@ -143,13 +143,13 @@ export default function Page() {
 
       const direction = arrowKeyDirections[e.key];
       if (direction) {
-        const targetPath = getDirectionalTarget(
+        const siblingPath = getSiblingPath(
           viewport.rootNode,
           selectedPath,
           direction,
         );
-        if (targetPath) {
-          setSelectedPath(targetPath);
+        if (siblingPath) {
+          setSelectedPath(siblingPath);
         }
       }
     }
