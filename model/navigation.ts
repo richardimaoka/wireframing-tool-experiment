@@ -1,4 +1,4 @@
-import type { ModelNode } from "./layout";
+import type { ModelNode, Rectangle } from "./layout";
 import { getParentPath, pathToString, type Path } from "./path";
 
 export type Direction = "up" | "down" | "left" | "right";
@@ -34,6 +34,14 @@ function getNodeByPath(root: ModelNode, path: Path): ModelNode {
 // Rows/Columns container.
 export function isRectangle(root: ModelNode, path: Path): boolean {
   return getNodeByPath(root, path).type === "rectangle";
+}
+
+// Returns the rectangle leaf at `path`, or null if the node there is a
+// Rows/Columns container. Callers that already know `path` points to a
+// rectangle (e.g. after isRectangle) can read its width/height off the result.
+export function getRectangle(root: ModelNode, path: Path): Rectangle | null {
+  const node = getNodeByPath(root, path);
+  return node.type === "rectangle" ? node : null;
 }
 
 // Wraps index into [0, length), so moving past the last child lands back on

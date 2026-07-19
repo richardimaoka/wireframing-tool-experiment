@@ -11,6 +11,7 @@ import { initialColumns, initialRows } from "@/model/layout";
 import {
   getFirstChildPath,
   getParentSelectionPath,
+  getRectangle,
   getSiblingPath,
   isRectangle,
   type Direction,
@@ -271,6 +272,133 @@ function ResizeDialog({
   );
 }
 
+function CenterAxisDialog({
+  onCancel,
+  onSelect,
+}: {
+  onCancel: () => void;
+  onSelect: (axis: "horizontal" | "vertical") => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          onCancel();
+        }
+        e.stopPropagation();
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          padding: "20px",
+          borderRadius: "8px",
+          backgroundColor: "white",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+          minWidth: "240px",
+        }}
+      >
+        <p>Center horizontally or vertically?</p>
+        <div
+          style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}
+        >
+          <button type="button" onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="button" onClick={() => onSelect("horizontal")}>
+            Horizontal
+          </button>
+          <button type="button" onClick={() => onSelect("vertical")}>
+            Vertical
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CenterDimensionDialog({
+  label,
+  onCancel,
+  onSubmit,
+}: {
+  label: string;
+  onCancel: () => void;
+  onSubmit: (value: number) => void;
+}) {
+  const [value, setValue] = useState("");
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const parsed = Number(value);
+    if (value.trim() === "" || !Number.isFinite(parsed)) {
+      return;
+    }
+    onSubmit(parsed);
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          onCancel();
+        }
+        e.stopPropagation();
+      }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          padding: "20px",
+          borderRadius: "8px",
+          backgroundColor: "white",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+          minWidth: "240px",
+        }}
+      >
+        <label style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          {label}
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            autoFocus
+          />
+        </label>
+        <div
+          style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}
+        >
+          <button type="button" onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="submit">Apply</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
   const [rootNode, dispatch] = useReducer(layoutReducerNew, rootContainer);
   const [selectedPath, setSelectedPath] = useState<Path>(["root", "1"]);
@@ -278,12 +406,74 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
   // Page or force the keydown listener below to be torn down and re-attached.
   const selectedSizeRef = useRef<SelectedSize | null>(null);
   const [isResizeDialogOpen, setIsResizeDialogOpen] = useState(false);
+  // Which step of the "c" (center) flow is open, if any: an axis choice,
+  // then - only when the rectangle doesn't already have that dimension set -
+  // a prompt for the width or height needed to center it.
+  const [centerDialogStep, setCenterDialogStep] = useState<
+    "chooseAxis" | "setWidth" | "setHeight" | null
+  >(null);
 
   const reportSelectedSize = useCallback((size: SelectedSize) => {
     selectedSizeRef.current = size;
   }, []);
 
   const closeResizeDialog = useCallback(() => setIsResizeDialogOpen(false), []);
+  const closeCenterDialog = useCallback(() => setCenterDialogStep(null), []);
+
+  const selectCenterAxis = useCallback(
+    (axis: "horizontal" | "vertical") => {
+      const rectangle = getRectangle(rootNode, selectedPath);
+      if (!rectangle) {
+        setCenterDialogStep(null);
+        return;
+      }
+
+      if (axis === "horizontal" && rectangle.width == null) {
+        setCenterDialogStep("setWidth");
+        return;
+      }
+      if (axis === "vertical" && rectangle.height == null) {
+        setCenterDialogStep("setHeight");
+        return;
+      }
+
+      dispatch({ type: "center", targetPath: selectedPath, axis });
+      setCenterDialogStep(null);
+    },
+    [rootNode, selectedPath],
+  );
+
+  const submitCenterDimension = useCallback(
+    (value: number) => {
+      if (centerDialogStep === "setWidth") {
+        dispatch({
+          type: "resize",
+          subType: "setRectangleWidth",
+          targetPath: selectedPath,
+          width: value,
+        });
+        dispatch({
+          type: "center",
+          targetPath: selectedPath,
+          axis: "horizontal",
+        });
+      } else if (centerDialogStep === "setHeight") {
+        dispatch({
+          type: "resize",
+          subType: "setRectangleHeight",
+          targetPath: selectedPath,
+          height: value,
+        });
+        dispatch({
+          type: "center",
+          targetPath: selectedPath,
+          axis: "vertical",
+        });
+      }
+      setCenterDialogStep(null);
+    },
+    [centerDialogStep, selectedPath],
+  );
 
   const submitResize = useCallback(
     (width: number | null, height: number | null) => {
@@ -317,10 +507,10 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // While the resize dialog is open, let its own inputs handle keys
-      // instead of triggering other shortcuts (e.g. typing "h" into the
-      // width field shouldn't split the rectangle).
-      if (isResizeDialogOpen) {
+      // While the resize or center dialog is open, let its own inputs
+      // handle keys instead of triggering other shortcuts (e.g. typing "h"
+      // into the width field shouldn't split the rectangle).
+      if (isResizeDialogOpen || centerDialogStep) {
         return;
       }
 
@@ -330,6 +520,17 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
           return;
         }
         setIsResizeDialogOpen(true);
+        return;
+      }
+
+      // "c" opens a dialog to center the selected rectangle horizontally
+      // or vertically.
+      if (e.key === "c") {
+        if (!isRectangle(rootNode, selectedPath)) {
+          return;
+        }
+
+        setCenterDialogStep("chooseAxis");
         return;
       }
 
@@ -389,7 +590,7 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPath, rootNode, isResizeDialogOpen]);
+  }, [selectedPath, rootNode, isResizeDialogOpen, centerDialogStep]);
 
   return (
     <SelectionContext.Provider
@@ -400,6 +601,26 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
       </div>
       {isResizeDialogOpen && (
         <ResizeDialog onCancel={closeResizeDialog} onSubmit={submitResize} />
+      )}
+      {centerDialogStep === "chooseAxis" && (
+        <CenterAxisDialog
+          onCancel={closeCenterDialog}
+          onSelect={selectCenterAxis}
+        />
+      )}
+      {centerDialogStep === "setWidth" && (
+        <CenterDimensionDialog
+          label="Width (px)"
+          onCancel={closeCenterDialog}
+          onSubmit={submitCenterDimension}
+        />
+      )}
+      {centerDialogStep === "setHeight" && (
+        <CenterDimensionDialog
+          label="Height (px)"
+          onCancel={closeCenterDialog}
+          onSubmit={submitCenterDimension}
+        />
       )}
     </SelectionContext.Provider>
   );

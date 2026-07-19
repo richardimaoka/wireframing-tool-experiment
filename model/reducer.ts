@@ -1,3 +1,8 @@
+import {
+  CenterAction,
+  centerRectangleInColumns,
+  centerRectangleInRows,
+} from "./centering";
 import { ContainerNode, type ModelNode } from "./layout";
 import {
   getParentPath,
@@ -17,7 +22,7 @@ import {
   splitRectangleInRows,
 } from "./split";
 
-type Action = SplitAction | ResizeAction;
+type Action = SplitAction | ResizeAction | CenterAction;
 
 function assertNever(x: never): never {
   throw new Error(`assertNever: unexpected value '${JSON.stringify(x)}'.`);
@@ -72,6 +77,15 @@ function performAction(
             return resizeRectangleInRows(node, targetPath, action);
           case "columns":
             return resizeRectangleInColumns(node, targetPath, action);
+          default:
+            return assertNever(node);
+        }
+      case "center":
+        switch (node.type) {
+          case "rows":
+            return centerRectangleInRows(node, targetPath, action);
+          case "columns":
+            return centerRectangleInColumns(node, targetPath, action);
           default:
             return assertNever(node);
         }
