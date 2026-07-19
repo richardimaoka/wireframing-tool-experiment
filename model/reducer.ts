@@ -94,6 +94,18 @@ function performAction(
   return { ...node, children };
 }
 
+export function layoutReducerNew(
+  rootContainer: ContainerNode,
+  action: Action,
+): ModelNode {
+  return performAction(
+    rootContainer,
+    [rootContainer.id],
+    action.targetPath,
+    action,
+  );
+}
+
 function performActionFromViewPort(
   viewPort: ViewPort,
   targetPath: Path,

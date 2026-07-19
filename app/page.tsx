@@ -1,7 +1,13 @@
 "use client";
 
-import type { Columns, ModelNode, Rectangle, Rows } from "@/model/layout";
-import { initialViewPort } from "@/model/layout";
+import type {
+  Columns,
+  ModelNode,
+  Rectangle,
+  Rows,
+  ViewPort,
+} from "@/model/layout";
+import { initialColumns, initialRows } from "@/model/layout";
 import {
   getFirstChildPath,
   getParentSelectionPath,
@@ -263,8 +269,8 @@ function ResizeDialog({
   );
 }
 
-export default function Page() {
-  const [viewport, dispatch] = useReducer(layoutReducer, initialViewPort());
+function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
+  const [viewport, dispatch] = useReducer(layoutReducer, initialViewport);
   const [selectedPath, setSelectedPath] = useState<Path>(["1"]);
   // Plain ref (not state): resize events fire often and shouldn't re-render
   // Page or force the keydown listener below to be torn down and re-attached.
@@ -399,4 +405,69 @@ export default function Page() {
       )}
     </SelectionContext.Provider>
   );
+}
+
+function RootContainerDialog({
+  onSelect,
+}: {
+  onSelect: (orientation: "rows" | "columns") => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          padding: "20px",
+          borderRadius: "8px",
+          backgroundColor: "white",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+          minWidth: "240px",
+        }}
+      >
+        <p>Start the wireframe with Rows or Columns as the root container?</p>
+        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <button type="button" onClick={() => onSelect("rows")}>
+            Rows
+          </button>
+          <button type="button" onClick={() => onSelect("columns")}>
+            Columns
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Page() {
+  const [initialViewport, setInitialViewport] = useState<ViewPort | null>(
+    null,
+  );
+
+  if (!initialViewport) {
+    return (
+      <RootContainerDialog
+        onSelect={(orientation) =>
+          setInitialViewport({
+            type: "viewport",
+            id: "root",
+            height: "100vh",
+            rootNode: orientation === "rows" ? initialRows() : initialColumns(),
+          })
+        }
+      />
+    );
+  }
+
+  return <WireframeEditor initialViewport={initialViewport} />;
 }

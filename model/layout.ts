@@ -38,6 +38,33 @@ export function initialViewPort(): ViewPort {
   };
 }
 
+export function initialRows(): Rows {
+  return {
+    type: "rows",
+    id: "root",
+    children: [
+      {
+        type: "rectangle",
+        id: "1",
+      },
+    ],
+    gridTemplateRows: ["1fr"],
+  };
+}
+
+export function initialColumns(): Columns {
+  return {
+    type: "columns",
+    id: "root",
+    children: [
+      {
+        type: "rectangle",
+        id: "1",
+      },
+    ],
+    gridTemplateColumns: ["1fr"],
+  };
+}
 export type ContainerNode = Rows | Columns;
 
 export type ModelNode = ContainerNode | Rectangle;
