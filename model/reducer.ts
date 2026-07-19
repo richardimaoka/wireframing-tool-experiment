@@ -21,6 +21,10 @@ import {
 
 type Action = SplitAction | ResizeAction;
 
+function assertNever(x: never): never {
+  throw new Error(`assertNever: unexpected value '${JSON.stringify(x)}'.`);
+}
+
 function hasMatchedChild(
   node: ContainerNode,
   nodePath: Path,
@@ -61,16 +65,20 @@ function performAction(
             return splitRectangleInRows(node, targetPath, action);
           case "columns":
             return splitRectangleInColumns(node, targetPath, action);
+          default:
+            return assertNever(node);
         }
-        break;
       case "resize":
         switch (node.type) {
           case "rows":
             return resizeRectangleInRows(node, targetPath, action);
           case "columns":
             return resizeRectangleInColumns(node, targetPath, action);
+          default:
+            return assertNever(node);
         }
-        break;
+      default:
+        return assertNever(action);
     }
   }
 
