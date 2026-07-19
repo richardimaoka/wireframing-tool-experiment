@@ -1,4 +1,10 @@
-import type { Columns, ModelNode, Rectangle, Rows } from "./layout";
+import type {
+  Columns,
+  ContainerNode,
+  ModelNode,
+  Rectangle,
+  Rows,
+} from "./layout";
 import type { Path } from "./path";
 import { pathToString } from "./path";
 
