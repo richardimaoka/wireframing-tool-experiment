@@ -116,6 +116,7 @@ function RowsView({ node, path }: { node: Rows; path: Path }) {
         backgroundColor,
         outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: "-2px",
+        justifyContent: node.justifyContent,
       }}
     >
       {node.children.map((child) => (
@@ -154,6 +155,7 @@ function ColumnsView({ node, path }: { node: Columns; path: Path }) {
         backgroundColor,
         outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: "-2px",
+        justifyContent: node.justifyContent,
       }}
     >
       {node.children.map((child) => (
@@ -541,9 +543,7 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
           // A rectangle can never be the parent of another node - if
           // selectedPath is a rectangle (checked above), its parent must be
           // a Rows/Columns container.
-          throw new Error(
-            "Unexpected rectangle parent for a rectangle leaf.",
-          );
+          throw new Error("Unexpected rectangle parent for a rectangle leaf.");
         }
         // Centering more than one child is not implemented yet (see
         // centerRectangleInRows/centerRectangleInColumns).

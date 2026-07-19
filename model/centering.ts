@@ -28,9 +28,9 @@ export function centerRectangleInRows(
     );
   }
 
-  if (action.axis === "vertical") {
+  if (action.axis === "horizontal") {
     throw new Error(
-      "centerRectangleInRows: vertical centering within a rows container is not implemented yet.",
+      "centerRectangleInRows: horizontal centering within a rows container is not implemented yet.",
     );
   }
 
@@ -56,9 +56,14 @@ export function centerRectangleInRows(
   }
 
   const children = [...parent.children];
-  children[childIndex] = { ...child, width: action.width };
+  children[childIndex] = { ...child, height: action.height };
 
-  return { ...parent, children, gridTemplateRows: ["max-content"] };
+  return {
+    ...parent,
+    children,
+    gridTemplateRows: ["max-content"],
+    justifyContent: "center",
+  };
 }
 
 export function centerRectangleInColumns(
@@ -72,9 +77,9 @@ export function centerRectangleInColumns(
     );
   }
 
-  if (action.axis === "horizontal") {
+  if (action.axis === "vertical") {
     throw new Error(
-      "centerRectangleInColumns: horizontal centering within a columns container is not implemented yet.",
+      "centerRectangleInColumns: vertical centering within a columns container is not implemented yet.",
     );
   }
 
@@ -100,7 +105,12 @@ export function centerRectangleInColumns(
   }
 
   const children = [...parent.children];
-  children[childIndex] = { ...child, height: action.height };
+  children[childIndex] = { ...child, width: action.width };
 
-  return { ...parent, children, gridTemplateColumns: ["max-content"] };
+  return {
+    ...parent,
+    children,
+    gridTemplateColumns: ["max-content"],
+    justifyContent: "center",
+  };
 }

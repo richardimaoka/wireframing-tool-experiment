@@ -10,6 +10,7 @@ export type Rows = {
   id: string;
   children: ModelNode[];
   gridTemplateRows: string[];
+  justifyContent?: "center";
 };
 
 export type Columns = {
@@ -17,6 +18,7 @@ export type Columns = {
   id: string;
   children: ModelNode[];
   gridTemplateColumns: string[];
+  justifyContent?: "center";
 };
 
 export type ViewPort = {
