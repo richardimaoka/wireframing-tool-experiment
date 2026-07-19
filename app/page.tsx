@@ -1,6 +1,6 @@
 "use client";
 
-import type { Columns, ModelNode, Rows } from "@/model/layout";
+import type { Columns, ModelNode, Rectangle, Rows } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
 import {
   getFirstChildPath,
@@ -20,6 +20,7 @@ import {
   useReducer,
   useRef,
   useState,
+  type FormEvent,
   type JSX,
 } from "react";
 
@@ -36,7 +37,7 @@ const arrowKeyDirections: Record<string, Direction> = {
   ArrowRight: "right",
 };
 
-function RectangleView({ path }: { path: Path }) {
+function RectangleView({ node, path }: { node: Rectangle; path: Path }) {
   const { selectedPath, select, reportSelectedSize } =
     useContext(SelectionContext)!;
   const isSelected = isEquvalentPath(selectedPath, path);
@@ -66,8 +67,10 @@ function RectangleView({ path }: { path: Path }) {
     <div
       ref={divRef}
       style={{
-        height: "100%",
-        width: "100%",
+        // An explicit width/height (set via the "s" shortcut) overrides the
+        // default of filling the grid cell.
+        height: node.height ?? "100%",
+        width: node.width ?? "100%",
         backgroundColor: "#e0e0e0",
         outline: isSelected ? "2px solid #3b82f6" : "1px solid #999",
         outlineOffset: "-2px",
@@ -161,7 +164,7 @@ function NodeView({
 }): JSX.Element {
   switch (node.type) {
     case "rectangle":
-      return <RectangleView path={path} />;
+      return <RectangleView node={node} path={path} />;
     case "rows":
       return <RowsView node={node} path={path} />;
     case "columns":
@@ -177,19 +180,151 @@ const SelectionContext = createContext<{
   reportSelectedSize: (size: SelectedSize) => void;
 } | null>(null);
 
+function ResizeDialog({
+  onCancel,
+  onSubmit,
+}: {
+  onCancel: () => void;
+  onSubmit: (width: number | null, height: number | null) => void;
+}) {
+  const [width, setWidth] = useState("");
+  const [height, setHeight] = useState("");
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const parsedWidth = width.trim() === "" ? null : Number(width);
+    const parsedHeight = height.trim() === "" ? null : Number(height);
+    if (
+      (parsedWidth !== null && !Number.isFinite(parsedWidth)) ||
+      (parsedHeight !== null && !Number.isFinite(parsedHeight))
+    ) {
+      return;
+    }
+    onSubmit(parsedWidth, parsedHeight);
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          onCancel();
+        }
+        // Prevent the global keydown shortcuts (h/v/i/o/arrows) from firing
+        // while typing in this dialog.
+        e.stopPropagation();
+      }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          padding: "20px",
+          borderRadius: "8px",
+          backgroundColor: "white",
+          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+          minWidth: "240px",
+        }}
+      >
+        <label style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          Width (px)
+          <input
+            type="number"
+            value={width}
+            onChange={(e) => setWidth(e.target.value)}
+            autoFocus
+          />
+        </label>
+        <label style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          Height (px)
+          <input
+            type="number"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+          />
+        </label>
+        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <button type="button" onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="submit">Apply</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function Page() {
   const [viewport, dispatch] = useReducer(layoutReducer, initialViewPort());
   const [selectedPath, setSelectedPath] = useState<Path>(["1"]);
   // Plain ref (not state): resize events fire often and shouldn't re-render
   // Page or force the keydown listener below to be torn down and re-attached.
   const selectedSizeRef = useRef<SelectedSize | null>(null);
+  const [isResizeDialogOpen, setIsResizeDialogOpen] = useState(false);
 
   const reportSelectedSize = useCallback((size: SelectedSize) => {
     selectedSizeRef.current = size;
   }, []);
 
+  const closeResizeDialog = useCallback(() => setIsResizeDialogOpen(false), []);
+
+  const submitResize = useCallback(
+    (width: number | null, height: number | null) => {
+      if (width !== null && height !== null) {
+        dispatch({
+          type: "resize",
+          subType: "setRectangleWidthHeight",
+          targetPath: selectedPath,
+          width,
+          height,
+        });
+      } else if (width !== null) {
+        dispatch({
+          type: "resize",
+          subType: "setRectangleWidth",
+          targetPath: selectedPath,
+          width,
+        });
+      } else if (height !== null) {
+        dispatch({
+          type: "resize",
+          subType: "setRectangleHeight",
+          targetPath: selectedPath,
+          height,
+        });
+      }
+      setIsResizeDialogOpen(false);
+    },
+    [selectedPath],
+  );
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      // While the resize dialog is open, let its own inputs handle keys
+      // instead of triggering other shortcuts (e.g. typing "h" into the
+      // width field shouldn't split the rectangle).
+      if (isResizeDialogOpen) {
+        return;
+      }
+
+      // "s" opens a dialog to set the selected rectangle's width/height.
+      if (e.key === "s") {
+        if (!isRectangle(viewport.rootNode, selectedPath)) {
+          return;
+        }
+        setIsResizeDialogOpen(true);
+        return;
+      }
+
       // "h" splits the selected rectangle into rows, "v" into columns.
       if (e.key === "h" || e.key === "v") {
         // Splitting only makes sense for a rectangle leaf, not a
@@ -250,7 +385,7 @@ export default function Page() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPath, viewport.rootNode]);
+  }, [selectedPath, viewport.rootNode, isResizeDialogOpen]);
 
   return (
     <SelectionContext.Provider
@@ -259,6 +394,9 @@ export default function Page() {
       <div style={{ height: viewport.height }}>
         <NodeView node={viewport.rootNode} path={[viewport.rootNode.id]} />
       </div>
+      {isResizeDialogOpen && (
+        <ResizeDialog onCancel={closeResizeDialog} onSubmit={submitResize} />
+      )}
     </SelectionContext.Provider>
   );
 }

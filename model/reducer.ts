@@ -6,7 +6,12 @@ import {
   pathToString,
   type Path,
 } from "./path";
-import { ResizeAction } from "./resize";
+import {
+  resizeRectangle,
+  resizeRectangleInColumns,
+  resizeRectangleInRows,
+  ResizeAction,
+} from "./resize";
 import { SplitAction, splitRectangle } from "./split";
 
 type Action = SplitAction | ResizeAction;
@@ -28,6 +33,23 @@ function performAction(
     throw new Error(
       `splitNode: unexpected function call - recursive node search should have stopped at the container of a rectangle, but hit the rectangle leaf node at '${pathToString(nodePath)}'.`,
     );
+  }
+
+  // Resizing a rectangle also updates its slot in the parent's grid
+  // template, so the parent (this node) - not just the matched child - must
+  // be replaced.
+  if (
+    action.type === "resize" &&
+    node.children.some((c) =>
+      isEquvalentPath([...nodePath, c.id], targetPath),
+    )
+  ) {
+    switch (node.type) {
+      case "rows":
+        return resizeRectangleInRows(node, targetPath, action);
+      case "columns":
+        return resizeRectangleInColumns(node, targetPath, action);
+    }
   }
 
   const children = node.children.map((c) => {
@@ -77,7 +99,7 @@ function performActionFromViewPort(
         `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' has depth 1 only, but does not match the root node.`,
       );
     } else {
-      // targetPath matches the root node, so we can split it directly
+      // targetPath matches the root node, so we can act on it directly
       switch (action.type) {
         case "split":
           return splitRectangle(
@@ -85,10 +107,8 @@ function performActionFromViewPort(
             targetPath,
             action.orientation,
           );
-        default:
-          throw new Error(
-            `performAction: unexpected action type '${action.type}' encountered.`,
-          );
+        case "resize":
+          return resizeRectangle(viewPort.rootNode, targetPath, action);
       }
     }
   }
