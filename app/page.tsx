@@ -37,10 +37,14 @@ function RectangleView({ path }: { path: Path }) {
   const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isSelected || !divRef.current) return;
+    // Measure the Rectangle size, and let entire App know if this Rectangle can be split, or too small to split.
 
     // CSS grid sizes (fr units) aren't known until the browser lays them out,
     // so we measure the actual rendered box rather than deriving it from the model.
+
+    // this callback only works if selectedPath is the same as path, and divRef.current is not null.
+    if (!isSelected || !divRef.current) return;
+
     const el = divRef.current;
     const observer = new ResizeObserver(([entry]) => {
       reportSelectedSize({
