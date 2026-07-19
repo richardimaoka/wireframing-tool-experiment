@@ -273,7 +273,7 @@ function ResizeDialog({
 
 function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
   const [rootNode, dispatch] = useReducer(layoutReducerNew, rootContainer);
-  const [selectedPath, setSelectedPath] = useState<Path>(["root"]);
+  const [selectedPath, setSelectedPath] = useState<Path>(["root", "1"]);
   // Plain ref (not state): resize events fire often and shouldn't re-render
   // Page or force the keydown listener below to be torn down and re-attached.
   const selectedSizeRef = useRef<SelectedSize | null>(null);
