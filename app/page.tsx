@@ -1,6 +1,6 @@
 "use client";
 
-import type { ModelNode } from "@/model/layout";
+import type { Columns, ModelNode, Rows } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
 import { getSiblingPath, type Direction } from "@/model/navigation";
 import type { Path } from "@/model/path";
@@ -14,6 +14,7 @@ import {
   useReducer,
   useRef,
   useState,
+  type JSX,
 } from "react";
 
 // Minimum size a rectangle must have along the split axis to allow splitting:
@@ -65,27 +66,53 @@ function RectangleView({ path }: { path: Path }) {
   );
 }
 
-function NodeView({ node, path }: { node: ModelNode; path: Path }) {
-  if (node.type === "rectangle") {
-    return <RectangleView path={path} />;
+function NodeView({
+  node,
+  path,
+}: {
+  node: ModelNode;
+  path: Path;
+}): JSX.Element {
+  switch (node.type) {
+    case "rectangle":
+      return <RectangleView path={path} />;
+    case "rows":
+      return <RowsView node={node} path={path} />;
+    case "columns":
+      return <ColumnsView node={node} path={path} />;
   }
+}
 
-  // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
-  const gridStyle =
-    node.type === "rows"
-      ? { gridTemplateRows: node.gridTemplateRows.join(" "), rowGap: "8px" }
-      : {
-          gridTemplateColumns: node.gridTemplateColumns.join(" "),
-          columnGap: "8px",
-        };
-
-  console.log(
-    `NodeView: path='${path.join("/")}' node.type='${node.type}' children=${node.children.map((c) => c.id).join(",")}
-    )}`,
-  );
+function RowsView({ node, path }: { node: Rows; path: Path }) {
   return (
     <div
-      style={{ height: "100%", width: "100%", display: "grid", ...gridStyle }}
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "grid",
+        gridTemplateRows: node.gridTemplateRows.join(" "),
+        // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
+        rowGap: "8px",
+      }}
+    >
+      {node.children.map((child) => (
+        <NodeView key={child.id} node={child} path={[...path, child.id]} />
+      ))}
+    </div>
+  );
+}
+
+function ColumnsView({ node, path }: { node: Columns; path: Path }) {
+  return (
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "grid",
+        gridTemplateColumns: node.gridTemplateColumns.join(" "),
+        // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
+        columnGap: "8px",
+      }}
     >
       {node.children.map((child) => (
         <NodeView key={child.id} node={child} path={[...path, child.id]} />
