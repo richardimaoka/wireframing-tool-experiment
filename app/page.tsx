@@ -428,16 +428,29 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
         return;
       }
 
-      if (axis === "horizontal" && rectangle.width == null) {
-        setCenterDialogStep("setWidth");
-        return;
+      if (axis === "horizontal") {
+        if (rectangle.width == null) {
+          setCenterDialogStep("setWidth");
+          return;
+        }
+        dispatch({
+          type: "center",
+          axis: "horizontal",
+          targetPath: selectedPath,
+          width: rectangle.width,
+        });
+      } else {
+        if (rectangle.height == null) {
+          setCenterDialogStep("setHeight");
+          return;
+        }
+        dispatch({
+          type: "center",
+          axis: "vertical",
+          targetPath: selectedPath,
+          height: rectangle.height,
+        });
       }
-      if (axis === "vertical" && rectangle.height == null) {
-        setCenterDialogStep("setHeight");
-        return;
-      }
-
-      dispatch({ type: "center", targetPath: selectedPath, axis });
       setCenterDialogStep(null);
     },
     [rootNode, selectedPath],
@@ -447,27 +460,17 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
     (value: number) => {
       if (centerDialogStep === "setWidth") {
         dispatch({
-          type: "resize",
-          subType: "setRectangleWidth",
+          type: "center",
+          axis: "horizontal",
           targetPath: selectedPath,
           width: value,
         });
-        dispatch({
-          type: "center",
-          targetPath: selectedPath,
-          axis: "horizontal",
-        });
       } else if (centerDialogStep === "setHeight") {
         dispatch({
-          type: "resize",
-          subType: "setRectangleHeight",
+          type: "center",
+          axis: "vertical",
           targetPath: selectedPath,
           height: value,
-        });
-        dispatch({
-          type: "center",
-          targetPath: selectedPath,
-          axis: "vertical",
         });
       }
       setCenterDialogStep(null);

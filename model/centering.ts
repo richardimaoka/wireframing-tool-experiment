@@ -5,12 +5,14 @@ export type HorizontalCenterAction = {
   type: "center";
   axis: "horizontal";
   targetPath: Path;
+  width: number;
 };
 
 export type VerticalCenterAction = {
   type: "center";
   axis: "vertical";
   targetPath: Path;
+  height: number;
 };
 
 export type CenterAction = HorizontalCenterAction | VerticalCenterAction;
