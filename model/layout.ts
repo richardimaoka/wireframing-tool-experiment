@@ -8,14 +8,14 @@ export type Rectangle = {
 export type Rows = {
   type: "rows";
   id: string;
-  children: Node[];
+  children: ModelNode[];
   gridTemplateRows: string[];
 };
 
 export type Columns = {
   type: "columns";
   id: string;
-  children: Node[];
+  children: ModelNode[];
   gridTemplateColumns: string[];
 };
 
@@ -23,7 +23,7 @@ export type ViewPort = {
   type: "viewport";
   id: "root";
   height: "100vh" | "100svh" | "100lvh" | "100dvh";
-  rootNode: Node;
+  rootNode: ModelNode;
 };
 
 export function initialViewPort(): ViewPort {
@@ -38,4 +38,4 @@ export function initialViewPort(): ViewPort {
   };
 }
 
-export type Node = Rows | Columns | Rectangle;
+export type ModelNode = Rows | Columns | Rectangle;

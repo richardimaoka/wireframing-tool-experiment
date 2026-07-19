@@ -1,9 +1,9 @@
-import type { Node } from "./layout";
+import type { ModelNode } from "./layout";
 import { getParentPath, pathToString, type Path } from "./path";
 
 export type Direction = "up" | "down" | "left" | "right";
 
-function getNodeByPath(root: Node, path: Path): Node {
+function getNodeByPath(root: ModelNode, path: Path): ModelNode {
   if (path.length < 1 || path[0] !== root.id) {
     throw new Error(
       `getNodeByPath: path '${pathToString(path)}' does not start at the root node '${root.id}'.`,
@@ -35,7 +35,7 @@ function getNodeByPath(root: Node, path: Path): Node {
 // up/down, columns for left/right). Returns null - a no-op - if the parent's
 // orientation doesn't match the direction, or there's no sibling that way.
 export function getSiblingPath(
-  root: Node,
+  root: ModelNode,
   path: Path,
   direction: Direction,
 ): Path | null {

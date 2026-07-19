@@ -1,6 +1,6 @@
 "use client";
 
-import type { Node } from "@/model/layout";
+import type { ModelNode } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
 import { getSiblingPath, type Direction } from "@/model/navigation";
 import type { Path } from "@/model/path";
@@ -73,7 +73,7 @@ function RectangleView({ path }: { path: Path }) {
   );
 }
 
-function NodeView({ node, path }: { node: Node; path: Path }) {
+function NodeView({ node, path }: { node: ModelNode; path: Path }) {
   if (node.type === "rectangle") {
     return <RectangleView path={path} />;
   }

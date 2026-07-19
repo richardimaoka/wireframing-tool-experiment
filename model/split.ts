@@ -1,4 +1,4 @@
-import type { Columns, Node, Rectangle, Rows } from "./layout";
+import type { Columns, ModelNode, Rectangle, Rows } from "./layout";
 import type { Path } from "./path";
 import { pathToString } from "./path";
 
@@ -35,10 +35,10 @@ function splitRectangleToColumns(rectangle: Rectangle): Columns {
 }
 
 export function splitRectangle(
-  target: Node,
+  target: ModelNode,
   targetPath: Path,
   orientation: SplitOrientation,
-): Node {
+): ModelNode {
   if (target.type !== "rectangle") {
     throw new Error(
       `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${target.type} instead.`,

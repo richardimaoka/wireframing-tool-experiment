@@ -1,4 +1,4 @@
-import { type Node, type ViewPort } from "./layout";
+import { type ModelNode, type ViewPort } from "./layout";
 import {
   getParentPath,
   isEquvalentPath,
@@ -12,11 +12,11 @@ import { SplitAction, splitRectangle } from "./split";
 type Action = SplitAction | ResizeAction;
 
 function performAction(
-  node: Node,
+  node: ModelNode,
   nodePath: Path,
   targetPath: Path,
   action: Action,
-): Node {
+): ModelNode {
   if (isEquvalentPath(nodePath, targetPath)) {
     const parentPath = getParentPath(targetPath);
     throw new Error(
@@ -63,7 +63,7 @@ function performActionFromViewPort(
   viewPort: ViewPort,
   targetPath: Path,
   action: Action,
-): Node {
+): ModelNode {
   if (targetPath.length < 1) {
     throw new Error(
       `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' is invalid - it must have at least one element.`,

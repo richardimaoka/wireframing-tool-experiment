@@ -1,4 +1,4 @@
-import { type Node, type Rectangle } from "./layout";
+import { type ModelNode, type Rectangle } from "./layout";
 import { pathToString, type Path } from "./path";
 
 type SetRectangleHeightAction = {
@@ -55,10 +55,10 @@ function setRectangleWidthHeight(
 }
 
 export function resizeRectangle(
-  target: Node,
+  target: ModelNode,
   targetPath: Path,
   action: ResizeAction,
-): Node {
+): ModelNode {
   if (target.type !== "rectangle") {
     throw new Error(
       `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${target.type} instead.`,
