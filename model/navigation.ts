@@ -105,6 +105,28 @@ export function getColumnSiblingPath(
   return [...parentPath, parent.children[newIndex].id];
 }
 
+// Selects the immediate parent of `path`. Returns null - a no-op - if
+// `path` is already at the root (has no parent).
+export function getParentSelectionPath(path: Path): Path | null {
+  if (path.length < 2) {
+    return null;
+  }
+
+  return getParentPath(path);
+}
+
+// Selects the first child of the node at `path`. Returns null - a no-op -
+// if the node is a rectangle leaf (has no children to descend into).
+export function getFirstChildPath(root: ModelNode, path: Path): Path | null {
+  const node = getNodeByPath(root, path);
+
+  if (node.type === "rectangle") {
+    return null;
+  }
+
+  return [...path, node.children[0].id];
+}
+
 // Dispatches to the row/column sibling navigation matching the immediate
 // parent's orientation. Returns null - a no-op - if the parent's
 // orientation doesn't match the direction (e.g. left/right under a Rows

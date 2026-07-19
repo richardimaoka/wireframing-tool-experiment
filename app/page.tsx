@@ -2,7 +2,12 @@
 
 import type { Columns, ModelNode, Rows } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
-import { getSiblingPath, type Direction } from "@/model/navigation";
+import {
+  getFirstChildPath,
+  getParentSelectionPath,
+  getSiblingPath,
+  type Direction,
+} from "@/model/navigation";
 import type { Path } from "@/model/path";
 import { getParentPath, isEquvalentPath } from "@/model/path";
 import { layoutReducer } from "@/model/reducer";
@@ -207,6 +212,19 @@ export default function Page() {
         });
 
         setSelectedPath((path) => [...path, "1"]); // Select the first child of the newly split node
+        return;
+      }
+
+      // "i" selects the first child of the selection (goes in), "o"
+      // selects its parent (goes out).
+      if (e.key === "i" || e.key === "o") {
+        const targetPath =
+          e.key === "i"
+            ? getFirstChildPath(viewport.rootNode, selectedPath)
+            : getParentSelectionPath(selectedPath);
+        if (targetPath) {
+          setSelectedPath(targetPath);
+        }
         return;
       }
 
