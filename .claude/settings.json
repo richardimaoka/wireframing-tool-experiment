@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(./node_modules/.bin/tsc *)",
+      "Bash(./node_modules/.bin/eslint *)",
+      "Bash(pnpm exec tsc *)",
+      "Bash(pnpm exec eslint *)"
+    ],
+    "ask": [
+      "Bash(git commit*)"
+    ]
+  }
+}
