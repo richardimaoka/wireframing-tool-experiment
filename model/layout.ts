@@ -38,4 +38,6 @@ export function initialViewPort(): ViewPort {
   };
 }
 
-export type ModelNode = Rows | Columns | Rectangle;
+export type ContainerNode = Rows | Columns;
+
+export type ModelNode = ContainerNode | Rectangle;

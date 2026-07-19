@@ -52,3 +52,61 @@ export function splitRectangle(
       return splitRectangleToColumns(target);
   }
 }
+
+export function splitRectangleInRows(
+  target: ModelNode,
+  targetPath: Path,
+  action: SplitAction,
+): ModelNode {
+  if (target.type !== "rows") {
+    throw new Error(
+      `splitRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${target.type} instead.`,
+    );
+  }
+
+  const childId = targetPath[targetPath.length - 1];
+  const childIndex = target.children.findIndex((c) => c.id === childId);
+  if (childIndex === -1) {
+    throw new Error(
+      `splitRectangleInRows: no child '${childId}' found under '${pathToString(targetPath)}'.`,
+    );
+  }
+
+  const children = [...target.children];
+  children[childIndex] = splitRectangle(
+    children[childIndex],
+    targetPath,
+    action.orientation,
+  );
+
+  return { ...target, children };
+}
+
+export function splitRectangleInColumns(
+  target: ModelNode,
+  targetPath: Path,
+  action: SplitAction,
+): ModelNode {
+  if (target.type !== "columns") {
+    throw new Error(
+      `splitRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${target.type} instead.`,
+    );
+  }
+
+  const childId = targetPath[targetPath.length - 1];
+  const childIndex = target.children.findIndex((c) => c.id === childId);
+  if (childIndex === -1) {
+    throw new Error(
+      `splitRectangleInColumns: no child '${childId}' found under '${pathToString(targetPath)}'.`,
+    );
+  }
+
+  const children = [...target.children];
+  children[childIndex] = splitRectangle(
+    children[childIndex],
+    targetPath,
+    action.orientation,
+  );
+
+  return { ...target, children };
+}

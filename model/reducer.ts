@@ -1,4 +1,4 @@
-import { type ModelNode, type ViewPort } from "./layout";
+import { ContainerNode, type ModelNode, type ViewPort } from "./layout";
 import {
   getParentPath,
   isEquvalentPath,
@@ -7,14 +7,29 @@ import {
   type Path,
 } from "./path";
 import {
+  ResizeAction,
   resizeRectangle,
   resizeRectangleInColumns,
   resizeRectangleInRows,
-  ResizeAction,
 } from "./resize";
-import { SplitAction, splitRectangle } from "./split";
+import {
+  SplitAction,
+  splitRectangle,
+  splitRectangleInColumns,
+  splitRectangleInRows,
+} from "./split";
 
 type Action = SplitAction | ResizeAction;
+
+function hasMatchedChild(
+  node: ContainerNode,
+  nodePath: Path,
+  targetPath: Path,
+): boolean {
+  return node.children.some((c) =>
+    isEquvalentPath([...nodePath, c.id], targetPath),
+  );
+}
 
 function performAction(
   node: ModelNode,
@@ -35,50 +50,54 @@ function performAction(
     );
   }
 
-  // Resizing a rectangle also updates its slot in the parent's grid
-  // template, so the parent (this node) - not just the matched child - must
-  // be replaced.
-  if (
-    action.type === "resize" &&
-    node.children.some((c) =>
-      isEquvalentPath([...nodePath, c.id], targetPath),
-    )
-  ) {
-    switch (node.type) {
-      case "rows":
-        return resizeRectangleInRows(node, targetPath, action);
-      case "columns":
-        return resizeRectangleInColumns(node, targetPath, action);
+  switch (action.type) {
+    case "split": {
+      if (hasMatchedChild(node, nodePath, targetPath)) {
+        switch (node.type) {
+          case "rows":
+            return splitRectangleInRows(node, targetPath, action);
+          case "columns":
+            return splitRectangleInColumns(node, targetPath, action);
+        }
+      }
+
+      // No match at this level, so we need to recurse into whichever child
+      // partially matches the target path.
+      const children = node.children.map((c) => {
+        const childPath = [...nodePath, c.id];
+        return isPartialMatchPath(childPath, targetPath)
+          ? performAction(c, childPath, targetPath, action)
+          : c;
+      });
+
+      return { ...node, children };
+    }
+
+    case "resize": {
+      // Resizing a rectangle also updates its slot in the parent's grid
+      // template, so the parent (this node) - not just the matched child -
+      // must be replaced.
+      if (hasMatchedChild(node, nodePath, targetPath)) {
+        switch (node.type) {
+          case "rows":
+            return resizeRectangleInRows(node, targetPath, action);
+          case "columns":
+            return resizeRectangleInColumns(node, targetPath, action);
+        }
+      }
+
+      // No match at this level, so we need to recurse into whichever child
+      // partially matches the target path.
+      const children = node.children.map((c) => {
+        const childPath = [...nodePath, c.id];
+        return isPartialMatchPath(childPath, targetPath)
+          ? performAction(c, childPath, targetPath, action)
+          : c;
+      });
+
+      return { ...node, children };
     }
   }
-
-  const children = node.children.map((c) => {
-    const childPath = [...nodePath, c.id];
-
-    if (isEquvalentPath(childPath, targetPath)) {
-      // Exact match found, so we can peroform the action on this child node
-      // Also, this node (i.e.) the parent of the target node should be altered
-      switch (action.type) {
-        case "split":
-          return splitRectangle(c, targetPath, action.orientation);
-        default:
-          throw new Error(
-            `performAction: unexpected action type '${action.type}' encountered.`,
-          );
-      }
-    } else if (isPartialMatchPath(childPath, targetPath)) {
-      // Partial match found, so we need to recurse into this child node
-      return performAction(c, childPath, targetPath, action);
-    } else {
-      // No match found, so we can return this child node as-is
-      return c;
-    }
-  });
-
-  // Return a new node with the updated children array
-  // children needs to be recursively updated,
-  // so we need to return a new node with the updated children array
-  return { ...node, children };
 }
 
 function performActionFromViewPort(
