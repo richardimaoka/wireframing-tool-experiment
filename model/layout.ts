@@ -1,8 +1,8 @@
 export type Rectangle = {
   type: "rectangle";
   id: string;
-  height?: string;
-  width?: string;
+  height?: number;
+  width?: number;
 };
 
 export type Rows = {

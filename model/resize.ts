@@ -31,14 +31,14 @@ export type ResizeAction =
 function setRectangleHeight(rectangle: Rectangle, height: number): Rectangle {
   return {
     ...rectangle,
-    height: `${height}px`,
+    height,
   };
 }
 
 function setRectangleWidth(rectangle: Rectangle, width: number): Rectangle {
   return {
     ...rectangle,
-    width: `${width}px`,
+    width,
   };
 }
 
@@ -49,8 +49,8 @@ function setRectangleWidthHeight(
 ): Rectangle {
   return {
     ...rectangle,
-    width: `${width}px`,
-    height: `${height}px`,
+    width,
+    height,
   };
 }
 
