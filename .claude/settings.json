@@ -13,6 +13,13 @@
       "Bash(pnpm exec eslint *)",
       "Bash(pnpm tsc *)"
     ],
+    "deny": [
+      "Skill(run)",
+      "Bash(pnpm dev*)",
+      "Bash(pnpm start*)",
+      "Bash(next dev*)",
+      "Bash(next start*)"
+    ],
     "ask": [
       "Bash(git commit*)"
     ]
