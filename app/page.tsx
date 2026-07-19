@@ -4,7 +4,7 @@ import type { Columns, ModelNode, Rows } from "@/model/layout";
 import { initialViewPort } from "@/model/layout";
 import { getSiblingPath, type Direction } from "@/model/navigation";
 import type { Path } from "@/model/path";
-import { isEquvalentPath } from "@/model/path";
+import { getParentPath, isEquvalentPath } from "@/model/path";
 import { layoutReducer } from "@/model/reducer";
 import {
   createContext,
@@ -73,6 +73,19 @@ function RectangleView({ path }: { path: Path }) {
 function RowsView({ node, path }: { node: Rows; path: Path }) {
   const { selectedPath } = useContext(SelectionContext)!;
   const isSelected = isEquvalentPath(selectedPath, path);
+  const hasSelectedChild = isEquvalentPath(getParentPath(selectedPath), path);
+
+  // Selected container gets the strongest tint; a container whose child is
+  // selected gets a lighter/softer tint; otherwise no fill.
+  const backgroundColor = isSelected
+    ? "#bfdbfe"
+    : hasSelectedChild
+      ? "#dbeafe"
+      : undefined;
+  // Selected container's outline is blue, unselected is neutral gray.
+  const outlineColor = isSelected ? "#3b82f6" : "#999";
+  // Selected container gets a thicker outline to stand out.
+  const outlineWidth = isSelected ? 2 : 1;
 
   return (
     <div
@@ -83,8 +96,8 @@ function RowsView({ node, path }: { node: Rows; path: Path }) {
         gridTemplateRows: node.gridTemplateRows.join(" "),
         // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
         rowGap: "8px",
-        backgroundColor: isSelected ? "#dbeafe" : undefined,
-        outline: isSelected ? "2px solid #3b82f6" : "1px solid #999",
+        backgroundColor,
+        outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: "-2px",
       }}
     >
@@ -98,6 +111,19 @@ function RowsView({ node, path }: { node: Rows; path: Path }) {
 function ColumnsView({ node, path }: { node: Columns; path: Path }) {
   const { selectedPath } = useContext(SelectionContext)!;
   const isSelected = isEquvalentPath(selectedPath, path);
+  const hasSelectedChild = isEquvalentPath(getParentPath(selectedPath), path);
+
+  // Selected container gets the strongest tint; a container whose child is
+  // selected gets a lighter/softer tint; otherwise no fill.
+  const backgroundColor = isSelected
+    ? "#bfdbfe"
+    : hasSelectedChild
+      ? "#dbeafe"
+      : undefined;
+  // Selected container's outline is blue, unselected is neutral gray.
+  const outlineColor = isSelected ? "#3b82f6" : "#999";
+  // Selected container gets a thicker outline to stand out.
+  const outlineWidth = isSelected ? 2 : 1;
 
   return (
     <div
@@ -108,8 +134,8 @@ function ColumnsView({ node, path }: { node: Columns; path: Path }) {
         gridTemplateColumns: node.gridTemplateColumns.join(" "),
         // 8px gap here is the same value baked into MIN_SPLIT_SIZE below.
         columnGap: "8px",
-        backgroundColor: isSelected ? "#dbeafe" : undefined,
-        outline: isSelected ? "2px solid #3b82f6" : "1px solid #999",
+        backgroundColor,
+        outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: "-2px",
       }}
     >
