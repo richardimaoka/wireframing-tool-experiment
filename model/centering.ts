@@ -10,31 +10,31 @@ export type CenterAction = {
 // Placeholder: centering is not implemented yet, so the container is
 // returned unchanged.
 export function centerRectangleInRows(
-  target: ModelNode,
+  parent: ModelNode,
   targetPath: Path,
   _action: CenterAction,
 ): Rows {
-  if (target.type !== "rows") {
+  if (parent.type !== "rows") {
     throw new Error(
-      `centerRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${target.type} instead.`,
+      `centerRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${parent.type} instead.`,
     );
   }
 
-  return target;
+  return parent;
 }
 
 // Placeholder: centering is not implemented yet, so the container is
 // returned unchanged.
 export function centerRectangleInColumns(
-  target: ModelNode,
+  parent: ModelNode,
   targetPath: Path,
   _action: CenterAction,
 ): Columns {
-  if (target.type !== "columns") {
+  if (parent.type !== "columns") {
     throw new Error(
-      `centerRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${target.type} instead.`,
+      `centerRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${parent.type} instead.`,
     );
   }
 
-  return target;
+  return parent;
 }

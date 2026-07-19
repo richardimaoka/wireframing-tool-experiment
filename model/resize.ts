@@ -99,68 +99,68 @@ function setsWidth(subType: ResizeAction["subType"]): boolean {
 }
 
 export function resizeRectangleInRows(
-  target: ModelNode,
+  parent: ModelNode,
   targetPath: Path,
   action: ResizeAction,
 ): Rows {
-  if (target.type !== "rows") {
+  if (parent.type !== "rows") {
     throw new Error(
-      `resizeRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${target.type} instead.`,
+      `resizeRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${parent.type} instead.`,
     );
   }
 
   const childId = targetPath[targetPath.length - 1];
-  const childIndex = target.children.findIndex((c) => c.id === childId);
+  const childIndex = parent.children.findIndex((c) => c.id === childId);
   if (childIndex === -1) {
     throw new Error(
       `resizeRectangleInRows: no child '${childId}' found under '${pathToString(targetPath)}'.`,
     );
   }
 
-  const children = [...target.children];
+  const children = [...parent.children];
   children[childIndex] = resizeRectangle(
     children[childIndex],
     targetPath,
     action,
   );
 
-  const gridTemplateRows = [...target.gridTemplateRows];
+  const gridTemplateRows = [...parent.gridTemplateRows];
   if (setsHeight(action.subType)) {
     // The resized row now sizes itself to its content instead of sharing
     // the remaining space via `fr`, since it has an explicit pixel height.
     gridTemplateRows[childIndex] = "max-content";
   }
 
-  return { ...target, children, gridTemplateRows };
+  return { ...parent, children, gridTemplateRows };
 }
 
 export function resizeRectangleInColumns(
-  target: ModelNode,
+  parent: ModelNode,
   targetPath: Path,
   action: ResizeAction,
 ): Columns {
-  if (target.type !== "columns") {
+  if (parent.type !== "columns") {
     throw new Error(
-      `resizeRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${target.type} instead.`,
+      `resizeRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${parent.type} instead.`,
     );
   }
 
   const childId = targetPath[targetPath.length - 1];
-  const childIndex = target.children.findIndex((c) => c.id === childId);
+  const childIndex = parent.children.findIndex((c) => c.id === childId);
   if (childIndex === -1) {
     throw new Error(
       `resizeRectangleInColumns: no child '${childId}' found under '${pathToString(targetPath)}'.`,
     );
   }
 
-  const children = [...target.children];
+  const children = [...parent.children];
   children[childIndex] = resizeRectangle(
     children[childIndex],
     targetPath,
     action,
   );
 
-  const gridTemplateColumns = [...target.gridTemplateColumns];
+  const gridTemplateColumns = [...parent.gridTemplateColumns];
   if (setsWidth(action.subType)) {
     // The resized column now sizes itself to its content instead of
     // sharing the remaining space via `fr`, since it has an explicit
@@ -168,5 +168,5 @@ export function resizeRectangleInColumns(
     gridTemplateColumns[childIndex] = "max-content";
   }
 
-  return { ...target, children, gridTemplateColumns };
+  return { ...parent, children, gridTemplateColumns };
 }

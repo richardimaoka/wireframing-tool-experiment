@@ -40,7 +40,7 @@ function splitRectangleToColumns(rectangle: Rectangle): Columns {
   };
 }
 
-export function splitRectangle(
+function splitRectangle(
   target: ModelNode,
   targetPath: Path,
   orientation: SplitOrientation,
@@ -60,59 +60,59 @@ export function splitRectangle(
 }
 
 export function splitRectangleInRows(
-  target: ModelNode,
+  parent: ModelNode,
   targetPath: Path,
   action: SplitAction,
 ): Rows {
-  if (target.type !== "rows") {
+  if (parent.type !== "rows") {
     throw new Error(
-      `splitRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${target.type} instead.`,
+      `splitRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${parent.type} instead.`,
     );
   }
 
   const childId = targetPath[targetPath.length - 1];
-  const childIndex = target.children.findIndex((c) => c.id === childId);
+  const childIndex = parent.children.findIndex((c) => c.id === childId);
   if (childIndex === -1) {
     throw new Error(
       `splitRectangleInRows: no child '${childId}' found under '${pathToString(targetPath)}'.`,
     );
   }
 
-  const children = [...target.children];
+  const children = [...parent.children];
   children[childIndex] = splitRectangle(
     children[childIndex],
     targetPath,
     action.orientation,
   );
 
-  return { ...target, children };
+  return { ...parent, children };
 }
 
 export function splitRectangleInColumns(
-  target: ModelNode,
+  parent: ModelNode,
   targetPath: Path,
   action: SplitAction,
 ): Columns {
-  if (target.type !== "columns") {
+  if (parent.type !== "columns") {
     throw new Error(
-      `splitRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${target.type} instead.`,
+      `splitRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${parent.type} instead.`,
     );
   }
 
   const childId = targetPath[targetPath.length - 1];
-  const childIndex = target.children.findIndex((c) => c.id === childId);
+  const childIndex = parent.children.findIndex((c) => c.id === childId);
   if (childIndex === -1) {
     throw new Error(
       `splitRectangleInColumns: no child '${childId}' found under '${pathToString(targetPath)}'.`,
     );
   }
 
-  const children = [...target.children];
+  const children = [...parent.children];
   children[childIndex] = splitRectangle(
     children[childIndex],
     targetPath,
     action.orientation,
   );
 
-  return { ...target, children };
+  return { ...parent, children };
 }
