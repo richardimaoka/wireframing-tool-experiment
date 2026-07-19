@@ -1,4 +1,4 @@
-import { ContainerNode, type ModelNode, type ViewPort } from "./layout";
+import { ContainerNode, type ModelNode } from "./layout";
 import {
   getParentPath,
   isEquvalentPath,
@@ -8,13 +8,11 @@ import {
 } from "./path";
 import {
   ResizeAction,
-  resizeRectangle,
   resizeRectangleInColumns,
   resizeRectangleInRows,
 } from "./resize";
 import {
   SplitAction,
-  splitRectangle,
   splitRectangleInColumns,
   splitRectangleInRows,
 } from "./split";
@@ -40,7 +38,7 @@ function performAction(
   nodePath: Path,
   targetPath: Path,
   action: Action,
-): ModelNode {
+): ContainerNode {
   if (isEquvalentPath(nodePath, targetPath)) {
     const parentPath = getParentPath(targetPath);
     throw new Error(
@@ -97,59 +95,11 @@ function performAction(
 export function layoutReducerNew(
   rootContainer: ContainerNode,
   action: Action,
-): ModelNode {
+): ContainerNode {
   return performAction(
     rootContainer,
     [rootContainer.id],
     action.targetPath,
     action,
   );
-}
-
-function performActionFromViewPort(
-  viewPort: ViewPort,
-  targetPath: Path,
-  action: Action,
-): ModelNode {
-  if (targetPath.length < 1) {
-    throw new Error(
-      `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' is invalid - it must have at least one element.`,
-    );
-  }
-
-  // targetPath has depth = 1, so we need to check if it matches the root node
-  if (targetPath.length === 1) {
-    if (viewPort.rootNode.id !== targetPath[0]) {
-      throw new Error(
-        `splitNodeFromRoot: targetPath '${pathToString(targetPath)}' has depth 1 only, but does not match the root node.`,
-      );
-    } else {
-      // targetPath matches the root node, so we can act on it directly
-      switch (action.type) {
-        case "split":
-          return splitRectangle(
-            viewPort.rootNode,
-            targetPath,
-            action.orientation,
-          );
-        case "resize":
-          return resizeRectangle(viewPort.rootNode, targetPath, action);
-      }
-    }
-  }
-
-  // targetPath has depth > 1, so we need to search for the target node
-  return performAction(
-    viewPort.rootNode,
-    [viewPort.rootNode.id],
-    targetPath,
-    action,
-  );
-}
-
-export function layoutReducer(viewport: ViewPort, action: Action): ViewPort {
-  return {
-    ...viewport,
-    rootNode: performActionFromViewPort(viewport, action.targetPath, action),
-  };
 }

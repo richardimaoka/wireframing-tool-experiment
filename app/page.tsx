@@ -2,10 +2,10 @@
 
 import type {
   Columns,
+  ContainerNode,
   ModelNode,
   Rectangle,
   Rows,
-  ViewPort,
 } from "@/model/layout";
 import { initialColumns, initialRows } from "@/model/layout";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/model/navigation";
 import type { Path } from "@/model/path";
 import { getParentPath, isEquvalentPath } from "@/model/path";
-import { layoutReducer } from "@/model/reducer";
+import { layoutReducerNew } from "@/model/reducer";
 import {
   createContext,
   useCallback,
@@ -258,7 +258,9 @@ function ResizeDialog({
             onChange={(e) => setHeight(e.target.value)}
           />
         </label>
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <div
+          style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}
+        >
           <button type="button" onClick={onCancel}>
             Cancel
           </button>
@@ -269,9 +271,9 @@ function ResizeDialog({
   );
 }
 
-function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
-  const [viewport, dispatch] = useReducer(layoutReducer, initialViewport);
-  const [selectedPath, setSelectedPath] = useState<Path>(["1"]);
+function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
+  const [rootNode, dispatch] = useReducer(layoutReducerNew, rootContainer);
+  const [selectedPath, setSelectedPath] = useState<Path>(["root"]);
   // Plain ref (not state): resize events fire often and shouldn't re-render
   // Page or force the keydown listener below to be torn down and re-attached.
   const selectedSizeRef = useRef<SelectedSize | null>(null);
@@ -324,7 +326,7 @@ function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
 
       // "s" opens a dialog to set the selected rectangle's width/height.
       if (e.key === "s") {
-        if (!isRectangle(viewport.rootNode, selectedPath)) {
+        if (!isRectangle(rootNode, selectedPath)) {
           return;
         }
         setIsResizeDialogOpen(true);
@@ -335,7 +337,7 @@ function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
       if (e.key === "h" || e.key === "v") {
         // Splitting only makes sense for a rectangle leaf, not a
         // Rows/Columns container (e.g. after navigating there with "o").
-        if (!isRectangle(viewport.rootNode, selectedPath)) {
+        if (!isRectangle(rootNode, selectedPath)) {
           return;
         }
 
@@ -368,7 +370,7 @@ function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
       if (e.key === "i" || e.key === "o") {
         const targetPath =
           e.key === "i"
-            ? getFirstChildPath(viewport.rootNode, selectedPath)
+            ? getFirstChildPath(rootNode, selectedPath)
             : getParentSelectionPath(selectedPath);
         if (targetPath) {
           setSelectedPath(targetPath);
@@ -378,11 +380,7 @@ function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
 
       const direction = arrowKeyDirections[e.key];
       if (direction) {
-        const siblingPath = getSiblingPath(
-          viewport.rootNode,
-          selectedPath,
-          direction,
-        );
+        const siblingPath = getSiblingPath(rootNode, selectedPath, direction);
         if (siblingPath) {
           setSelectedPath(siblingPath);
         }
@@ -391,14 +389,14 @@ function WireframeEditor({ initialViewport }: { initialViewport: ViewPort }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPath, viewport.rootNode, isResizeDialogOpen]);
+  }, [selectedPath, rootNode, isResizeDialogOpen]);
 
   return (
     <SelectionContext.Provider
       value={{ selectedPath, select: setSelectedPath, reportSelectedSize }}
     >
-      <div style={{ height: viewport.height }}>
-        <NodeView node={viewport.rootNode} path={[viewport.rootNode.id]} />
+      <div style={{ height: "100vh" }}>
+        <NodeView node={rootNode} path={[rootNode.id]} />
       </div>
       {isResizeDialogOpen && (
         <ResizeDialog onCancel={closeResizeDialog} onSubmit={submitResize} />
@@ -436,7 +434,9 @@ function RootContainerDialog({
         }}
       >
         <p>Start the wireframe with Rows or Columns as the root container?</p>
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <div
+          style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}
+        >
           <button type="button" onClick={() => onSelect("rows")}>
             Rows
           </button>
@@ -450,24 +450,21 @@ function RootContainerDialog({
 }
 
 export default function Page() {
-  const [initialViewport, setInitialViewport] = useState<ViewPort | null>(
+  const [rootContainer, setRootContainer] = useState<ContainerNode | null>(
     null,
   );
 
-  if (!initialViewport) {
+  if (!rootContainer) {
     return (
       <RootContainerDialog
         onSelect={(orientation) =>
-          setInitialViewport({
-            type: "viewport",
-            id: "root",
-            height: "100vh",
-            rootNode: orientation === "rows" ? initialRows() : initialColumns(),
-          })
+          setRootContainer(
+            orientation === "rows" ? initialRows() : initialColumns(),
+          )
         }
       />
     );
   }
 
-  return <WireframeEditor initialViewport={initialViewport} />;
+  return <WireframeEditor rootContainer={rootContainer} />;
 }

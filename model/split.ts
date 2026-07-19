@@ -38,7 +38,7 @@ export function splitRectangle(
   target: ModelNode,
   targetPath: Path,
   orientation: SplitOrientation,
-): ModelNode {
+): ContainerNode {
   if (target.type !== "rectangle") {
     throw new Error(
       `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${target.type} instead.`,
@@ -57,7 +57,7 @@ export function splitRectangleInRows(
   target: ModelNode,
   targetPath: Path,
   action: SplitAction,
-): ModelNode {
+): Rows {
   if (target.type !== "rows") {
     throw new Error(
       `splitRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${target.type} instead.`,
@@ -86,7 +86,7 @@ export function splitRectangleInColumns(
   target: ModelNode,
   targetPath: Path,
   action: SplitAction,
-): ModelNode {
+): Columns {
   if (target.type !== "columns") {
     throw new Error(
       `splitRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${target.type} instead.`,

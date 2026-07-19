@@ -1,4 +1,4 @@
-import { type ModelNode, type Rectangle } from "./layout";
+import { Columns, Rows, type ModelNode, type Rectangle } from "./layout";
 import { pathToString, type Path } from "./path";
 
 type SetRectangleHeightAction = {
@@ -58,7 +58,7 @@ export function resizeRectangle(
   target: ModelNode,
   targetPath: Path,
   action: ResizeAction,
-): ModelNode {
+): Rectangle {
   if (target.type !== "rectangle") {
     throw new Error(
       `splitNode: node search found the target node '${pathToString(targetPath)}' but it was not a rectangle, ${target.type} instead.`,
@@ -102,7 +102,7 @@ export function resizeRectangleInRows(
   target: ModelNode,
   targetPath: Path,
   action: ResizeAction,
-): ModelNode {
+): Rows {
   if (target.type !== "rows") {
     throw new Error(
       `resizeRectangleInRows: node search found the target node '${pathToString(targetPath)}' but it was not a rows container, ${target.type} instead.`,
@@ -138,7 +138,7 @@ export function resizeRectangleInColumns(
   target: ModelNode,
   targetPath: Path,
   action: ResizeAction,
-): ModelNode {
+): Columns {
   if (target.type !== "columns") {
     throw new Error(
       `resizeRectangleInColumns: node search found the target node '${pathToString(targetPath)}' but it was not a columns container, ${target.type} instead.`,
