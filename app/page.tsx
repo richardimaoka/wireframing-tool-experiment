@@ -6,6 +6,7 @@ import {
   getFirstChildPath,
   getParentSelectionPath,
   getSiblingPath,
+  isRectangle,
   type Direction,
 } from "@/model/navigation";
 import type { Path } from "@/model/path";
@@ -191,6 +192,12 @@ export default function Page() {
     function handleKeyDown(e: KeyboardEvent) {
       // "h" splits the selected rectangle into rows, "v" into columns.
       if (e.key === "h" || e.key === "v") {
+        // Splitting only makes sense for a rectangle leaf, not a
+        // Rows/Columns container (e.g. after navigating there with "o").
+        if (!isRectangle(viewport.rootNode, selectedPath)) {
+          return;
+        }
+
         const orientation = e.key === "h" ? "rows" : "columns";
         const size = selectedSizeRef.current;
         if (!size) {

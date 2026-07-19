@@ -30,6 +30,12 @@ function getNodeByPath(root: ModelNode, path: Path): ModelNode {
   return node;
 }
 
+// Whether the node at `path` is a rectangle leaf (splittable) rather than a
+// Rows/Columns container.
+export function isRectangle(root: ModelNode, path: Path): boolean {
+  return getNodeByPath(root, path).type === "rectangle";
+}
+
 // Wraps index into [0, length), so moving past the last child lands back on
 // the first one (and vice versa).
 function cycleIndex(index: number, length: number): number {
