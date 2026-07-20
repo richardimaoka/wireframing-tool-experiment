@@ -27,7 +27,7 @@ import {
   splitRectangleInRows,
 } from "./split";
 
-type Action = SplitAction | ResizeAction | CenterAction | DuplicateAction;
+export type Action = SplitAction | ResizeAction | CenterAction | DuplicateAction;
 
 function assertNever(x: never): never {
   throw new Error(`assertNever: unexpected value '${JSON.stringify(x)}'.`);

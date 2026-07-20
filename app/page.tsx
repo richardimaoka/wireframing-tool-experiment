@@ -17,9 +17,9 @@ import {
   isRectangle,
   type Direction,
 } from "@/model/navigation";
+import { historyReducer, initHistoryState } from "@/model/history";
 import type { Path } from "@/model/path";
 import { getParentPath, isEquvalentPath } from "@/model/path";
-import { layoutReducerNew } from "@/model/reducer";
 import {
   createContext,
   useCallback,
@@ -409,8 +409,18 @@ function CenterDimensionDialog({
 }
 
 function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
-  const [rootNode, dispatch] = useReducer(layoutReducerNew, rootContainer);
-  const [selectedPath, setSelectedPath] = useState<Path>(["root", "1"]);
+  // Named "history", not "state", because it holds the full undo/redo
+  // timeline - { past, present, future } - rather than just the current
+  // tree/selection. See model/history.ts.
+  const [history, dispatch] = useReducer(
+    historyReducer,
+    { tree: rootContainer, selectedPath: ["root", "1"] as Path },
+    initHistoryState,
+  );
+  // The actual editor state (tree + selection) is always history.present -
+  // past/future only exist to move present backward/forward on undo/redo.
+  const rootNode = history.present.tree;
+  const selectedPath = history.present.selectedPath;
   // Plain ref (not state): resize events fire often and shouldn't re-render
   // Page or force the keydown listener below to be torn down and re-attached.
   const selectedSizeRef = useRef<SelectedSize | null>(null);
@@ -526,6 +536,14 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
         return;
       }
 
+      // Ctrl+Z (or Cmd+Z) undoes the last edit; Ctrl+Shift+Z redoes it.
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        // Stops the browser's native undo from firing.
+        e.preventDefault();
+        dispatch({ type: e.shiftKey ? "redo" : "undo" });
+        return;
+      }
+
       // "s" opens a dialog to set the selected rectangle's width/height.
       if (e.key === "s") {
         if (!isRectangle(rootNode, selectedPath)) {
@@ -601,7 +619,8 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
           orientation,
         });
 
-        setSelectedPath((path) => [...path, "1"]); // Select the first child of the newly split node
+        // Select the first child of the newly split node.
+        dispatch({ type: "select", path: [...selectedPath, "1"] });
         return;
       }
 
@@ -613,7 +632,7 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
             ? getFirstChildPath(rootNode, selectedPath)
             : getParentSelectionPath(selectedPath);
         if (targetPath) {
-          setSelectedPath(targetPath);
+          dispatch({ type: "select", path: targetPath });
         }
         return;
       }
@@ -622,7 +641,7 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
       if (direction) {
         const siblingPath = getSiblingPath(rootNode, selectedPath, direction);
         if (siblingPath) {
-          setSelectedPath(siblingPath);
+          dispatch({ type: "select", path: siblingPath });
         }
       }
     }
@@ -633,7 +652,11 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
 
   return (
     <SelectionContext.Provider
-      value={{ selectedPath, select: setSelectedPath, reportSelectedSize }}
+      value={{
+        selectedPath,
+        select: (path) => dispatch({ type: "select", path }),
+        reportSelectedSize,
+      }}
     >
       <div style={{ height: "100vh" }}>
         <NodeView node={rootNode} path={[rootNode.id]} />
