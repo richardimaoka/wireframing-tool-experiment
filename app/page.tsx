@@ -28,8 +28,8 @@ import {
   useReducer,
   useRef,
   useState,
-  type FormEvent,
   type JSX,
+  type SubmitEvent,
 } from "react";
 
 // Minimum size a rectangle must have along the split axis to allow splitting:
@@ -79,7 +79,7 @@ function RectangleView({ node, path }: { node: Rectangle; path: Path }) {
         // default of filling the grid cell.
         height: node.height ?? "100%",
         width: node.width ?? "100%",
-        backgroundColor: "#e0e0e0",
+        backgroundColor: isSelected ? "#bfdbfe" : "#e0e0e0",
         outline: isSelected ? "2px solid #3b82f6" : "1px solid #999",
         outlineOffset: "-2px",
       }}
@@ -97,12 +97,15 @@ function RowsView({ node, path }: { node: Rows; path: Path }) {
   const backgroundColor = isSelected
     ? "#bfdbfe"
     : hasSelectedChild
-      ? "#dbeafe"
-      : undefined;
+      ? "#fef9c3"
+      : "white";
   // Selected container's outline is blue, unselected is neutral gray.
   const outlineColor = isSelected ? "#3b82f6" : "#999";
   // Selected container gets a thicker outline to stand out.
   const outlineWidth = isSelected ? 2 : 1;
+  const justifyContent = node.justifyContent
+    ? { justifyContent: node.justifyContent }
+    : {};
 
   return (
     <div
@@ -116,7 +119,7 @@ function RowsView({ node, path }: { node: Rows; path: Path }) {
         backgroundColor,
         outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: "-2px",
-        justifyContent: node.justifyContent,
+        ...justifyContent,
       }}
     >
       {node.children.map((child) => (
@@ -136,12 +139,15 @@ function ColumnsView({ node, path }: { node: Columns; path: Path }) {
   const backgroundColor = isSelected
     ? "#bfdbfe"
     : hasSelectedChild
-      ? "#dbeafe"
-      : undefined;
+      ? "#fef9c3"
+      : "white";
   // Selected container's outline is blue, unselected is neutral gray.
   const outlineColor = isSelected ? "#3b82f6" : "#999";
   // Selected container gets a thicker outline to stand out.
   const outlineWidth = isSelected ? 2 : 1;
+  const justifyContent = node.justifyContent
+    ? { justifyContent: node.justifyContent }
+    : {};
 
   return (
     <div
@@ -155,7 +161,7 @@ function ColumnsView({ node, path }: { node: Columns; path: Path }) {
         backgroundColor,
         outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: "-2px",
-        justifyContent: node.justifyContent,
+        ...justifyContent,
       }}
     >
       {node.children.map((child) => (
@@ -200,7 +206,7 @@ function ResizeDialog({
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     const parsedWidth = width.trim() === "" ? null : Number(width);
     const parsedHeight = height.trim() === "" ? null : Number(height);
@@ -341,7 +347,7 @@ function CenterDimensionDialog({
 }) {
   const [value, setValue] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     const parsed = Number(value);
     if (value.trim() === "" || !Number.isFinite(parsed)) {

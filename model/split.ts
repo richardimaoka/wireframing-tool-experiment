@@ -17,24 +17,32 @@ export type SplitAction = {
 };
 
 function splitRectangleToRows(rectangle: Rectangle): Rows {
+  const halvedHeight =
+    rectangle.height !== undefined
+      ? { height: (rectangle.height - 8) / 2 }
+      : {};
+
   return {
     type: "rows",
     id: rectangle.id,
     children: [
-      { ...rectangle, id: "1" },
-      { ...rectangle, id: "2" },
+      { ...rectangle, id: "1", ...halvedHeight },
+      { ...rectangle, id: "2", ...halvedHeight },
     ],
     gridTemplateRows: ["1fr", "1fr"],
   };
 }
 
 function splitRectangleToColumns(rectangle: Rectangle): Columns {
+  const halvedWidth =
+    rectangle.width !== undefined ? { width: (rectangle.width - 8) / 2 } : {};
+
   return {
     type: "columns",
     id: rectangle.id,
     children: [
-      { ...rectangle, id: "1" },
-      { ...rectangle, id: "2" },
+      { ...rectangle, id: "1", ...halvedWidth },
+      { ...rectangle, id: "2", ...halvedWidth },
     ],
     gridTemplateColumns: ["1fr", "1fr"],
   };
