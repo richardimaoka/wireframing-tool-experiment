@@ -561,6 +561,18 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
         return;
       }
 
+      // Ctrl+D (or Cmd+D on Mac) duplicates the selected rectangle as a new
+      // sibling.
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        if (!isRectangle(rootNode, selectedPath)) {
+          return;
+        }
+        // Stops the browser's "bookmark this page" shortcut from firing.
+        e.preventDefault();
+        dispatch({ type: "duplicate", targetPath: selectedPath });
+        return;
+      }
+
       // "h" splits the selected rectangle into rows, "v" into columns.
       if (e.key === "h" || e.key === "v") {
         // Splitting only makes sense for a rectangle leaf, not a

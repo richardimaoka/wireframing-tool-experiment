@@ -3,6 +3,11 @@ import {
   centerRectangleInColumns,
   centerRectangleInRows,
 } from "./centering";
+import {
+  DuplicateAction,
+  duplicateRectangleInColumns,
+  duplicateRectangleInRows,
+} from "./duplicate";
 import { ContainerNode, type ModelNode } from "./layout";
 import {
   getParentPath,
@@ -22,7 +27,7 @@ import {
   splitRectangleInRows,
 } from "./split";
 
-type Action = SplitAction | ResizeAction | CenterAction;
+type Action = SplitAction | ResizeAction | CenterAction | DuplicateAction;
 
 function assertNever(x: never): never {
   throw new Error(`assertNever: unexpected value '${JSON.stringify(x)}'.`);
@@ -86,6 +91,15 @@ function performAction(
             return centerRectangleInRows(node, targetPath, action);
           case "columns":
             return centerRectangleInColumns(node, targetPath, action);
+          default:
+            return assertNever(node);
+        }
+      case "duplicate":
+        switch (node.type) {
+          case "rows":
+            return duplicateRectangleInRows(node, targetPath);
+          case "columns":
+            return duplicateRectangleInColumns(node, targetPath);
           default:
             return assertNever(node);
         }
