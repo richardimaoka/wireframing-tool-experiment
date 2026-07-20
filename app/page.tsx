@@ -1,5 +1,6 @@
 "use client";
 
+import { historyReducer, initHistoryState } from "@/model/history";
 import type {
   Columns,
   ContainerNode,
@@ -17,7 +18,6 @@ import {
   isRectangle,
   type Direction,
 } from "@/model/navigation";
-import { historyReducer, initHistoryState } from "@/model/history";
 import type { Path } from "@/model/path";
 import { getParentPath, isEquvalentPath } from "@/model/path";
 import {
@@ -658,7 +658,7 @@ function WireframeEditor({ rootContainer }: { rootContainer: ContainerNode }) {
         reportSelectedSize,
       }}
     >
-      <div style={{ height: "100vh" }}>
+      <div style={{ minHeight: "100vh", display: "grid" }}>
         <NodeView node={rootNode} path={[rootNode.id]} />
       </div>
       {isResizeDialogOpen && (
